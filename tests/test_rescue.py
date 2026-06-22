@@ -43,6 +43,19 @@ def test_unsupported_question_returns_bridge() -> None:
     assert resp.script == service.BRIDGE_LINE
 
 
+def test_generation_failure_degrades_to_bridge(monkeypatch) -> None:
+    _index("Cue returns a grounded rescue script when the speaker faces a hard question.")
+
+    class _Boom:
+        def generate(self, prompt):
+            raise RuntimeError("simulated Gemini 503")
+
+    monkeypatch.setattr(service, "get_generator", lambda settings=None: _Boom())
+    resp = service.generate_rescue("grounded rescue script hard question")
+    assert resp.grounded is False
+    assert resp.script == service.BRIDGE_LINE
+
+
 def test_rescue_endpoint_returns_script(client: TestClient) -> None:
     _index("The periodic scan inspects the transcript every thirty seconds for trouble.")
     resp = client.post("/rescue", json={"question": "periodic scan transcript thirty seconds"})

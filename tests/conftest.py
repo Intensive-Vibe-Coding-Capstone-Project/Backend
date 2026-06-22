@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from cue.api.app import create_app
 from cue.config import get_settings
 from cue.rag import store
+from cue.sessions import store as session_store
 
 
 @pytest.fixture(autouse=True)
@@ -18,13 +19,16 @@ def _isolate_store(tmp_path, monkeypatch) -> None:
     so tests never hit the network even when a real GEMINI_API_KEY is present.
     """
     monkeypatch.setenv("CUE_CHROMA_DIR", str(tmp_path / "chroma"))
+    monkeypatch.setenv("CUE_DB_PATH", str(tmp_path / "cue.db"))
     monkeypatch.setenv("CUE_EMBEDDINGS_PROVIDER", "fake")
     monkeypatch.setenv("CUE_GENERATION_PROVIDER", "fake")
     get_settings.cache_clear()
     store.reset_cache()
+    session_store.reset_cache()
     yield
     get_settings.cache_clear()
     store.reset_cache()
+    session_store.reset_cache()
 
 
 @pytest.fixture
