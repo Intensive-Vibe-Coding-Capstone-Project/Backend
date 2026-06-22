@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     # --- Transcript / triggers ---
     transcript_window_s: float = 30.0  # recent window scanned for a rescue
     silence_threshold_s: float = 10.0  # silence longer than this can trigger
+    scan_interval_s: float = 30.0  # periodic auto-scan cadence
+    trigger_min_chars: int = 20  # ignore windows shorter than this on auto-scan
 
     # --- Embeddings ---
     # auto = use Gemini when a key is present, else the offline fake embedder.
