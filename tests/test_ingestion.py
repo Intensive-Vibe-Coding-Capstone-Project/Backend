@@ -1,4 +1,4 @@
-"""Unit tests for parsers + ingestion service (one case per supported type)."""
+"""Unit tests for parsers + the parse-only ingestion service."""
 
 from __future__ import annotations
 
@@ -42,26 +42,23 @@ def test_normalize_collapses_whitespace_and_controls() -> None:
     assert parsers.normalize_text(raw) == "Hello world\n\nGoodbye"
 
 
-def test_ingest_stores_and_lists() -> None:
-    doc = service.ingest("notes.txt", sample_docs.make_txt_bytes(SENTINEL))
+def test_parse_upload_assigns_id_and_count() -> None:
+    doc = service.parse_upload("notes.txt", sample_docs.make_txt_bytes(SENTINEL))
     assert doc.id
+    assert doc.doc_type == DocType.txt
     assert doc.char_count == len(doc.text)
-    assert service.get_document(doc.id) is doc
-    assert [d.id for d in service.list_documents()] == [doc.id]
+    assert SENTINEL in doc.text
 
 
-def test_ingest_rejects_empty_document() -> None:
+def test_parse_upload_rejects_empty_document() -> None:
     with pytest.raises(EmptyDocumentError):
-        service.ingest("blank.txt", b"   \n\t  ")
+        service.parse_upload("blank.txt", b"   \n\t  ")
 
 
-def test_ingest_rejects_oversized_file(monkeypatch) -> None:
+def test_parse_upload_rejects_oversized_file(monkeypatch) -> None:
     from cue.config import get_settings
 
-    get_settings.cache_clear()
     monkeypatch.setenv("CUE_MAX_UPLOAD_MB", "0")  # nothing is small enough
-    try:
-        with pytest.raises(FileTooLargeError):
-            service.ingest("notes.txt", sample_docs.make_txt_bytes(SENTINEL))
-    finally:
-        get_settings.cache_clear()
+    get_settings.cache_clear()
+    with pytest.raises(FileTooLargeError):
+        service.parse_upload("notes.txt", sample_docs.make_txt_bytes(SENTINEL))

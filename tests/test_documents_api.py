@@ -18,6 +18,7 @@ def test_upload_then_list(client: TestClient) -> None:
     body = resp.json()
     assert body["doc_type"] == "txt"
     assert body["char_count"] > 0
+    assert body["n_chunks"] >= 1
     assert SENTINEL in body["preview"]
     doc_id = body["id"]
 
