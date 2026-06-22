@@ -10,6 +10,7 @@ class RescueRequest(BaseModel):
 
     question: str = Field(min_length=1, description="The question to answer from the docs.")
     k: int | None = Field(default=None, ge=1, le=20, description="Override retrieval top-k.")
+    session_id: str | None = Field(default=None, description="Record this turn in a session.")
 
     @field_validator("question")
     @classmethod
