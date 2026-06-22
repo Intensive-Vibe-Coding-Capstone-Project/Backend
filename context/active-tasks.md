@@ -19,11 +19,12 @@
 
 - [x] D9 — Trigger engine: `triggers/engine.py` (manual + periodic, should_fire dedup + ungrounded suppression, records turn); WS `{type:"trigger"}` + periodic scan task (send lock, to_thread). pytest 52/52.
 
-## D10 — Slip / flow detection (next)
-Goal: diff the spoken transcript window vs the prepared script → flag divergence (wrong brand / off-flow) → correction script. Serves PRD §4 #3/#4.
-- [ ] Prepared-script per session (bind on session create or upload); compare transcript window vs prepared (embeddings/keyword diff) — dev.
-- [ ] Correction-mode prompt + trigger when divergence detected — dev.
-- [ ] Tests — dev — green keyless.
+- [x] D10 — Slip / flow detection: prepared script per session (`PUT /sessions/{id}/script`), lexical brand + off-flow detection, correction grounded in script, WS `{type:"check_slip"}` + periodic slip. pytest 60/60. **All 4 use cases now covered.**
+
+## D11 — Stretch + polish (next)
+- [ ] Keyword + silence auto-triggers in the periodic scan (use `silence_seconds` + a keyword list) — dev — fires on "good question" / >10s silence.
+- [ ] UX polish: surface rescues/corrections in the demo UI from a live transcript box (WS); edge cases.
+- [ ] D6 follow-ups: live `run_eval.py` grounding rate; latency via streaming.
 
 ## Backlog
 - [ ] D10 slip/flow detection; D11 keyword/silence auto-triggers (stretch).

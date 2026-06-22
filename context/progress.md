@@ -35,13 +35,16 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 
 - **D8 ✅ Streaming transcript ingest (dev done)** — `transcript/` module: `TranscriptBuffer` (rolling, timestamped, `window(s)` + `silence_seconds`, injectable clock), per-session `service` (validate session, append, window, silence), and `WS /stream/{session_id}` that ingests transcript text and acks `{segments, window_chars, silence_s}` (rejects unknown session with close 4404). **STT decision:** MVP = transcript text over WS; audio STT is stretch (D11). `pytest` **46/46** keyless (TestClient WS).
 - **D9 ✅ Trigger engine (dev done)** — `triggers/engine.py`: `fire(session_id, mode)` — **manual** (rescue on the current window now) + **periodic** (gated by `should_fire`: min-chars + dedup vs last fire, and ungrounded bridges suppressed so the 30s auto-scan stays quiet). Records the turn on every fire. WS protocol extended: `{type:"trigger"}` → push `{type:"rescue", mode, ...}`; per-connection periodic asyncio scan task; sends serialized with a lock; the LLM call runs via `asyncio.to_thread` (doesn't block the event loop). `pytest` **52/52** keyless.
+- **D10 ✅ Slip / flow detection (dev done)** — prepared script bound per session (`PUT /sessions/{id}/script`, sqlite columns + migration). `triggers/slip.py`: **lexical** detection (provider-independent) — `detect_brand_slip` (forbidden term as a whole word) + `detect_off_flow` (spoken/script word-overlap < `slip_min_overlap`); `check()` builds a correction grounded in the prepared script (generator + templated fallback). WS: `{type:"check_slip"}` → push `{type:"correction", kind, wrong_terms, lines}`; also run in the periodic scan. `pytest` **60/60** keyless.
+
+## ✅ All 4 PRD use cases covered — #1/#2 hard question (`/rescue`), #3 live-sale brand slip + #4 recording flow break (slip detection).
 
 ## In progress
 - D6 follow-ups before submit: re-run live `run_eval.py` for a real grounding rate; address latency via streaming.
 - D1 wrap-up: optional — fill team roles in roadmap.
 
 ## Next (per roadmap)
-- **D10: Slip / flow detection** — diff the spoken transcript window vs the prepared script → detect divergence (wrong brand / off-flow) → correction script (PRD use cases 3 & 4).
+- **D11 (stretch + polish)** — keyword + silence auto-triggers (if MVP solid); UX polish on line rendering, latency, edge cases. Then D12 full QA, **D13 Kaggle submission**.
 
 ## Blockers / open questions
 - STT vendor (decide D8) and demo hosting still open — not blocking Week 1.
@@ -49,4 +52,4 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - Note: deps install fine on local Python 3.14; CI pins 3.11/3.12. Watch for chromadb/google-genai 3.14 wheel issues when installing `.[rag]` on D3.
 
 ## Last updated
-2026-06-22 — by: D9 trigger engine (manual + periodic scan over WS)
+2026-06-22 — by: D10 slip / flow detection (brand + off-flow corrections)
