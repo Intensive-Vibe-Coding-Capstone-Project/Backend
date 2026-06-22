@@ -21,14 +21,17 @@
 
 - [x] D10 — Slip / flow detection: prepared script per session (`PUT /sessions/{id}/script`), lexical brand + off-flow detection, correction grounded in script, WS `{type:"check_slip"}` + periodic slip. pytest 60/60. **All 4 use cases now covered.**
 
-## D11 — Stretch + polish (next)
-- [ ] Keyword + silence auto-triggers in the periodic scan (use `silence_seconds` + a keyword list) — dev — fires on "good question" / >10s silence.
-- [ ] UX polish: surface rescues/corrections in the demo UI from a live transcript box (WS); edge cases.
-- [ ] D6 follow-ups: live `run_eval.py` grounding rate; latency via streaming.
+- [x] D11 — Stretch triggers + UX polish: keyword + silence auto-triggers (`matched_keyword` + `auto_reason`/`auto_fire`, keyword > silence > periodic; auto modes dedup + suppress ungrounded); demo UI gains a prepared-script panel (`PUT /sessions/{id}/script`) + a live-transcript WS panel (connect, send lines, manual trigger, check-slip, live karaoke render + badges + log). pytest 66/66.
+
+## D12 — Full QA + eval pass (next)
+- [ ] Run `qa-review` over the whole pipeline (D2–D11): pytest green, edge cases, error envelope — QA — PASS/FAIL with evidence.
+- [ ] Live grounding rate via `run_eval.py` in a fresh-quota window (free tier = 20 flash generate/day; today's run hit 429) — QA — record real ≥90% number.
+- [ ] Latency check on `/rescue` vs ~4s; decide if token streaming is needed for the demo — QA.
 
 ## Backlog
-- [ ] D10 slip/flow detection; D11 keyword/silence auto-triggers (stretch).
-- [ ] D6 follow-ups: live `run_eval.py` grounding rate; latency via streaming.
+- [ ] Latency: stream tokens to cut perceived time vs ~4s budget (D8+ streaming) — owner.
+- [ ] Audio STT (Gemini live / Google STT) — stretch beyond the text path.
+- [ ] Demo cost: each auto-scan with new speech = 1 Gemini generate; against the 20/day free-tier cap, consider raising `scan_interval_s` or enabling billing for the live demo.
 
 ## Format
 `- [ ] <task> — owner — acceptance criteria`

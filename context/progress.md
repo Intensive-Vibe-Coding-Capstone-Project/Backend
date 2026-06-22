@@ -39,12 +39,17 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 
 ## ✅ All 4 PRD use cases covered — #1/#2 hard question (`/rescue`), #3 live-sale brand slip + #4 recording flow break (slip detection).
 
+- **D11 ✅ Stretch triggers + UX polish (dev done)** — `triggers/engine.py`: **keyword + silence auto-triggers**. `matched_keyword` (urgent phrases from `trigger_keywords` config) + `auto_reason(session_id)` picks **keyword > silence > periodic**; keyword/silence relax the `trigger_min_chars` gate while all auto modes still dedup on an unchanged window and suppress ungrounded bridges. `auto_fire()` runs one scan and returns `(response, mode)`; WS auto-scan now surfaces the real mode. **UI polish** (`frontend/index.html`): new panels for a **prepared script** (`PUT /sessions/{id}/script` → enables slip alerts) and a **live transcript over WS** (connect, type lines, "Rescue now" / "Check slip", live karaoke render with mode/`grounded`/slip badges + event log). `pytest` **66/66** keyless; ruff clean.
+
 ## In progress
-- D6 follow-ups before submit: re-run live `run_eval.py` for a real grounding rate; address latency via streaming.
+- D6 follow-ups before submit: live `run_eval.py` real grounding rate **still blocked** (now by free-tier quota — see below); latency via streaming.
 - D1 wrap-up: optional — fill team roles in roadmap.
 
+## D6 follow-up status (re-attempted D11)
+- **Live grounding eval re-run on 2026-06-23 → BLOCKED by HTTP 429 RESOURCE_EXHAUSTED** (free tier = **20 `gemini-2.5-flash` generate/day**, exhausted). The rescue path degraded gracefully to the bridge line on every 429 (no crash, no hallucination) — robustness confirmed. Offline 13-case gate stays green. **Re-run in a fresh-quota window (or with billing) before D13**, and mind that each auto-scan with new speech costs 1 generate against the 20/day cap.
+
 ## Next (per roadmap)
-- **D11 (stretch + polish)** — keyword + silence auto-triggers (if MVP solid); UX polish on line rendering, latency, edge cases. Then D12 full QA, **D13 Kaggle submission**.
+- **D12 — Full QA + eval pass** (`qa-review` on the whole pipeline; live grounding rate when quota allows; latency). Then **D13 Kaggle submission**, D14 buffer/retro.
 
 ## Blockers / open questions
 - STT vendor (decide D8) and demo hosting still open — not blocking Week 1.
@@ -52,4 +57,4 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - Note: deps install fine on local Python 3.14; CI pins 3.11/3.12. Watch for chromadb/google-genai 3.14 wheel issues when installing `.[rag]` on D3.
 
 ## Last updated
-2026-06-22 — by: D10 slip / flow detection (brand + off-flow corrections)
+2026-06-23 — by: D11 stretch triggers (keyword + silence) + UX polish (prepared script + live WS panel)
