@@ -34,14 +34,5 @@ class DocumentMeta(BaseModel):
     filename: str
     doc_type: DocType
     char_count: int
+    n_chunks: int
     preview: str
-
-    @classmethod
-    def from_doc(cls, doc: ParsedDocument, preview_chars: int) -> DocumentMeta:
-        return cls(
-            id=doc.id,
-            filename=doc.filename,
-            doc_type=doc.doc_type,
-            char_count=doc.char_count,
-            preview=doc.text[:preview_chars],
-        )

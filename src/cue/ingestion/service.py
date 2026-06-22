@@ -1,8 +1,7 @@
-"""Ingestion service: turn an uploaded file into a stored `ParsedDocument`.
+"""Ingestion service: validate + parse an uploaded file into a `ParsedDocument`.
 
-D2 keeps parsed documents in a process-local in-memory registry. D3 replaces
-this with chunk -> embed -> Chroma; the registry interface stays the same shape
-(ingest / get / list) so callers don't change.
+Parsing only — storage now lives in the RAG layer (`cue.rag.index`), which
+chunks, embeds, and persists to Chroma. The documents route composes the two.
 """
 
 from __future__ import annotations
@@ -14,12 +13,9 @@ from cue.ingestion import parsers
 from cue.ingestion.errors import EmptyDocumentError, FileTooLargeError
 from cue.ingestion.models import ParsedDocument
 
-# Process-local store. Swapped for the vector store in D3.
-_REGISTRY: dict[str, ParsedDocument] = {}
 
-
-def ingest(filename: str, data: bytes) -> ParsedDocument:
-    """Validate, parse, normalize, and store an uploaded document.
+def parse_upload(filename: str, data: bytes) -> ParsedDocument:
+    """Validate size, parse by type, normalize, and assign an id.
 
     Raises `FileTooLargeError`, `UnsupportedDocTypeError`, `DocumentParseError`,
     or `EmptyDocumentError` on bad input.
@@ -37,25 +33,10 @@ def ingest(filename: str, data: bytes) -> ParsedDocument:
             f"No extractable text in '{filename}' (it may be empty, scanned, or image-only)."
         )
 
-    doc = ParsedDocument(
+    return ParsedDocument(
         id=uuid.uuid4().hex,
         filename=filename,
         doc_type=doc_type,
         char_count=len(text),
         text=text,
     )
-    _REGISTRY[doc.id] = doc
-    return doc
-
-
-def get_document(doc_id: str) -> ParsedDocument | None:
-    return _REGISTRY.get(doc_id)
-
-
-def list_documents() -> list[ParsedDocument]:
-    return list(_REGISTRY.values())
-
-
-def clear() -> None:
-    """Drop all stored documents (used by tests)."""
-    _REGISTRY.clear()
