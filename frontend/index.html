@@ -63,6 +63,8 @@
       .badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
       .badge.good { background: rgba(70,211,154,0.15); color: var(--good); }
       .badge.warn { background: rgba(242,182,90,0.15); color: var(--warn); }
+      .badge.info { background: rgba(124,140,255,0.18); color: var(--accent); margin-left: 6px; }
+      .badge.alert { background: rgba(242,90,120,0.18); color: #f25a78; }
       /* lyric render */
       #script { margin-top: 14px; text-align: center; }
       #script .line {
@@ -115,7 +117,38 @@
       </section>
 
       <section class="panel">
-        <h2>4 · Session history</h2>
+        <h2>4 · Prepared script <span class="muted" style="text-transform:none;letter-spacing:0">— optional, enables slip alerts</span></h2>
+        <textarea id="scriptText" placeholder="Paste your prepared script / talking points…"></textarea>
+        <div class="row" style="margin-top:10px">
+          <input type="text" id="forbidden" placeholder="Forbidden terms, comma-separated (e.g. Shopee, Lazada)" style="flex:1" />
+          <button id="saveScript">Save script</button>
+          <span id="scriptStatus" class="muted"></span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>5 · Live transcript &amp; auto-rescue (WS)</h2>
+        <div class="row">
+          <button id="connectWs">Connect</button>
+          <button id="disconnectWs" class="secondary" disabled>Disconnect</button>
+          <span id="wsStatus" class="muted">Disconnected.</span>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <input type="text" id="transcriptLine" placeholder="Speak a line (type it), press Enter or Send…" style="flex:1" />
+          <button id="sendLine" disabled>Send line</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="manualTrigger" class="secondary" disabled>Rescue now</button>
+          <button id="checkSlip" class="secondary" disabled>Check slip</button>
+        </div>
+        <div id="liveBadge" style="margin-top:12px"></div>
+        <div id="liveScript"></div>
+        <div id="liveCitations" class="chips"></div>
+        <ul class="history" id="wsLog" style="margin-top:12px"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>6 · Session history</h2>
         <button id="refreshHistory" class="secondary">Refresh history</button>
         <ul class="history" id="history"></ul>
       </section>
@@ -169,17 +202,26 @@
         await loadHistory();
       };
 
-      function renderScript(resp) {
-        const badge = resp.grounded
-          ? '<span class="badge good">grounded</span>'
-          : '<span class="badge warn">bridge</span>';
-        $("grounded").innerHTML = badge;
-        $("script").innerHTML = resp.lines
+      function lyricLines(lines) {
+        return lines
           .map((l, i) => `<div class="line" style="animation-delay:${i * 0.12}s">${l}</div>`)
           .join("");
-        $("citations").innerHTML = resp.citations
+      }
+      function citationChips(citations) {
+        return (citations || [])
           .map((c) => `<span class="chip">${c.filename} · #${c.chunk_index} · ${c.score.toFixed(2)}</span>`)
           .join("");
+      }
+      function groundedBadge(grounded) {
+        return grounded
+          ? '<span class="badge good">grounded</span>'
+          : '<span class="badge warn">bridge</span>';
+      }
+
+      function renderScript(resp) {
+        $("grounded").innerHTML = groundedBadge(resp.grounded);
+        $("script").innerHTML = lyricLines(resp.lines);
+        $("citations").innerHTML = citationChips(resp.citations);
       }
 
       $("askBtn").onclick = async () => {
@@ -216,6 +258,85 @@
           : '<li class="muted">No turns yet.</li>';
       }
       $("refreshHistory").onclick = loadHistory;
+
+      // --- Prepared script (slip detection) ---
+      $("saveScript").onclick = async () => {
+        if (!sessionId) return alert("Start a session first.");
+        const terms = $("forbidden").value
+          .split(",").map((t) => t.trim()).filter(Boolean);
+        try {
+          await fetch(`/sessions/${sessionId}/script`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: $("scriptText").value, forbidden_terms: terms }),
+          }).then((r) => { if (!r.ok) throw new Error(r.statusText); });
+          $("scriptStatus").textContent = `Saved · ${terms.length} forbidden term(s).`;
+        } catch (e) {
+          $("scriptStatus").textContent = "Save failed: " + e.message;
+        }
+      };
+
+      // --- Live transcript over WebSocket ---
+      let ws = null;
+      const wsBtns = ["sendLine", "manualTrigger", "checkSlip"];
+      function setWsConnected(on) {
+        $("connectWs").disabled = on;
+        $("disconnectWs").disabled = !on;
+        wsBtns.forEach((id) => ($(id).disabled = !on));
+      }
+      function logEvent(html) {
+        const li = document.createElement("li");
+        li.innerHTML = html;
+        $("wsLog").prepend(li);
+      }
+      function renderLive(badgeHtml, lines, citations) {
+        $("liveBadge").innerHTML = badgeHtml;
+        $("liveScript").innerHTML = lyricLines(lines);
+        $("liveCitations").innerHTML = citationChips(citations);
+      }
+
+      function handleWsMessage(msg) {
+        if (msg.type === "ack") {
+          $("wsStatus").textContent =
+            `Connected · ${msg.segments} segs · ${msg.window_chars} chars · silence ${msg.silence_s}s`;
+        } else if (msg.type === "rescue") {
+          const badge = `${groundedBadge(msg.grounded)}<span class="badge info">${msg.mode}</span>`;
+          renderLive(badge, msg.lines, msg.citations);
+          logEvent(`<div class="q">rescue · ${msg.mode}</div><div>${msg.lines.join(" / ")}</div>`);
+        } else if (msg.type === "correction") {
+          const wrong = msg.wrong_terms.length ? ` · ${msg.wrong_terms.join(", ")}` : "";
+          const badge = `<span class="badge alert">slip: ${msg.kind}${wrong}</span>`;
+          renderLive(badge, msg.lines, []);
+          logEvent(`<div class="q">correction · ${msg.kind}${wrong}</div><div>${msg.lines.join(" / ")}</div>`);
+        } else if (msg.type === "none") {
+          logEvent('<span class="muted">No rescue needed right now.</span>');
+        } else if (msg.type === "error") {
+          logEvent(`<span class="muted">error: ${msg.detail}</span>`);
+        }
+      }
+
+      $("connectWs").onclick = () => {
+        if (!sessionId) return alert("Start a session first.");
+        const proto = location.protocol === "https:" ? "wss" : "ws";
+        ws = new WebSocket(`${proto}://${location.host}/stream/${sessionId}`);
+        ws.onopen = () => { setWsConnected(true); $("wsStatus").textContent = "Connected."; };
+        ws.onmessage = (ev) => handleWsMessage(JSON.parse(ev.data));
+        ws.onclose = () => { setWsConnected(false); $("wsStatus").textContent = "Disconnected."; ws = null; };
+        ws.onerror = () => { $("wsStatus").textContent = "WS error."; };
+      };
+      $("disconnectWs").onclick = () => ws && ws.close();
+
+      function sendLine() {
+        const line = $("transcriptLine").value.trim();
+        if (!line || !ws) return;
+        ws.send(JSON.stringify({ text: line }));
+        logEvent(`<span class="muted">you: ${line}</span>`);
+        $("transcriptLine").value = "";
+      }
+      $("sendLine").onclick = sendLine;
+      $("transcriptLine").addEventListener("keydown", (e) => { if (e.key === "Enter") sendLine(); });
+      $("manualTrigger").onclick = () => ws && ws.send(JSON.stringify({ type: "trigger" }));
+      $("checkSlip").onclick = () => ws && ws.send(JSON.stringify({ type: "check_slip" }));
 
       loadDocs();
     </script>
