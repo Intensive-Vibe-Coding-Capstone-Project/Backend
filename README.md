@@ -17,6 +17,20 @@ Upload docs → index (RAG) → during the talk, a trigger (button / 30s scan / 
 4. [docs/04-delivery/roadmap.md](docs/04-delivery/roadmap.md) — the 2-week plan.
 5. [context/progress.md](context/progress.md) — where we are right now.
 
+## Setup (dev)
+Requires **Python ≥3.11** (developed on 3.14).
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate   ·   macOS/Linux: source .venv/bin/activate
+pip install -e ".[dev]"          # core + test/lint toolchain
+cp .env.example .env             # then add your GEMINI_API_KEY
+
+ruff check . && ruff format --check .   # lint
+pytest                                   # tests
+cue                                      # run dev server at http://127.0.0.1:8000  (docs at /docs)
+```
+Optional dependency groups land as features do: `pip install -e ".[parsers]"` (D2 doc parsing), `".[rag]"` (D3 Gemini + Chroma).
+
 ## How we build it
 **Loop Engineering** (planner → dev → QA agents) on top of a **Context Engineering** docs system, using **Claude Code** + Agent Skills in [.claude/skills/](.claude/skills/). See the [playbook](docs/05-context-engineering/playbook.md).
 
@@ -24,6 +38,8 @@ Upload docs → index (RAG) → during the talk, a trigger (button / 30s scan / 
 
 ## Repo layout
 ```
+src/cue/     backend package: api/, config.py, ingestion/, rag/, rescue/, transcript/, triggers/, sessions/
+tests/       pytest suite (mirrors src/cue)
 docs/        product, architecture, engineering, agents, delivery, context-engineering
 context/     living memory: progress, decisions, tasks, glossary
 .claude/skills/  reusable agent procedures
