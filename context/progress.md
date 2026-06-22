@@ -14,14 +14,16 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 
 - **D2 ✅ Document ingestion (dev done, pending QA)** — `ingestion/` module (models, errors, parser registry for pdf/docx/txt/pptx/epub → normalized text, service with in-memory registry) + `POST /documents` & `GET /documents` wired into the app. Domain errors map to 415/413/422 via the `{error,detail}` envelope. Embedding/store deferred to D3.
 - **D2 ✅ Tests green** — `pytest` **19/19** (per-parser extraction on runtime-generated samples, normalization, service registry, size/empty guards, endpoint happy-path + 415/422). `ruff` + `format` clean. CI now installs `.[dev,parsers]`.
+- **D3 ✅ Chunk + embed + store (dev done)** — `rag/` module: boundary-aware `chunking`, `Embedder` protocol with `GeminiEmbedder` (live) + deterministic `FakeEmbedder` (offline) + `get_embedder()` factory, Chroma `VectorStore` (cosine, citations `doc_id:chunk_index`), `index.index_document/query`. `POST /documents` now parses → chunks → embeds → indexes; `GET /documents` reads the store with `n_chunks`. In-memory registry retired.
+- **D3 ✅ Verified** — `.[rag]` (chromadb 1.5.9 + google-genai 2.9.0) installs clean on **Python 3.14** (watch-item closed). `pytest` **24/24** keyless (fake embedder, temp Chroma per test). **Live smoke passed**: real `gemini-embedding-001` (3072-dim) → Chroma → ranked retrieval. Gemini key valid (works with `AQ.` format).
 
 ## In progress
-- D2 → hand off to `/qa-review` (grounding N/A this step; check latency + error handling).
+- D3 → hand off to `/qa-review` (check latency + error handling; grounding-eval starts at D4).
 - D1 wrap-up: optional — fill team roles in roadmap.
 
 ## Next (per roadmap)
-- D3: chunk/embed/store — Gemini embeddings → Chroma; replace in-memory registry (keep ingest/get/list shape). Install `.[rag]`.
-- D4: `POST /rescue` (text) → retrieve → Gemini → grounded script.
+- D4: `POST /rescue` (text question) → `rag.index.query` retrieve → grounded Gemini Flash prompt → rescue script **with citations**; refuse/bridge when unsupported. Prompt v1 in `docs/02-engineering/`.
+- D5: session model + history.
 
 ## Blockers / open questions
 - STT vendor (decide D8) and demo hosting still open — not blocking Week 1.
@@ -29,4 +31,4 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - Note: deps install fine on local Python 3.14; CI pins 3.11/3.12. Watch for chromadb/google-genai 3.14 wheel issues when installing `.[rag]` on D3.
 
 ## Last updated
-2026-06-22 — by: D2 dev (document ingestion)
+2026-06-22 — by: D3 dev (chunk + embed + store)
