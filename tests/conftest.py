@@ -22,6 +22,9 @@ def _isolate_store(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("CUE_DB_PATH", str(tmp_path / "cue.db"))
     monkeypatch.setenv("CUE_EMBEDDINGS_PROVIDER", "fake")
     monkeypatch.setenv("CUE_GENERATION_PROVIDER", "fake")
+    # The fake embedder scores on a different scale than Gemini; the production
+    # default (0.6) is Gemini-tuned, so tests use a fake-appropriate threshold.
+    monkeypatch.setenv("CUE_RESCUE_MIN_SCORE", "0.3")
     get_settings.cache_clear()
     store.reset_cache()
     session_store.reset_cache()

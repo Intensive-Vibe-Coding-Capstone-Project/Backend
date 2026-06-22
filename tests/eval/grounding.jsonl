@@ -2,4 +2,12 @@
 {"id": "g2", "doc": "The periodic scan inspects the transcript every thirty seconds for trouble.", "question": "periodic scan transcript thirty seconds", "expect_grounded": true}
 {"id": "g3", "doc": "Upload your slides and notes so Cue can ground answers in your own material.", "question": "upload slides notes ground answers material", "expect_grounded": true}
 {"id": "g4", "doc": "A live seller naming the wrong brand triggers an immediate correction line.", "question": "live seller wrong brand correction line", "expect_grounded": true}
-{"id": "g5", "doc": "Cue returns a grounded rescue script when the speaker faces a hard question.", "question": "banana umbrella helicopter spaceship volcano", "expect_grounded": false}
+{"id": "g5", "doc": "Cue supports pdf, docx, txt, pptx, and epub document uploads for indexing.", "question": "supported document upload formats pdf docx pptx epub", "expect_grounded": true}
+{"id": "g6", "doc": "Documents are chunked and embedded with Gemini, then stored in a Chroma vector database.", "question": "documents chunked embedded Gemini Chroma vector database", "expect_grounded": true}
+{"id": "g7", "doc": "Rescue scripts are shown line by line like song lyrics so they are easy to read aloud.", "question": "rescue scripts shown line lyrics easy read aloud", "expect_grounded": true}
+{"id": "g8", "doc": "Urgent keyword triggers include phrases such as let me check that and good question.", "question": "urgent keyword triggers phrases let me check", "expect_grounded": true}
+{"id": "g9", "doc": "A long silence over ten seconds can automatically trigger a rescue suggestion.", "question": "long silence ten seconds trigger rescue suggestion", "expect_grounded": true}
+{"id": "g10", "doc": "Cue targets students, office workers, and content creators who present or sell live.", "question": "students office workers content creators present sell", "expect_grounded": true}
+{"id": "off1", "doc": "Cue returns a grounded rescue script when the speaker faces a hard question.", "question": "banana umbrella helicopter spaceship volcano", "expect_grounded": false}
+{"id": "off2", "doc": "Documents are chunked and embedded with Gemini, then stored in a Chroma vector database.", "question": "weather forecast tomorrow afternoon rain umbrella", "expect_grounded": false}
+{"id": "off3", "doc": "Cue targets students, office workers, and content creators who present or sell live.", "question": "recipe chocolate cake flour sugar oven baking", "expect_grounded": false}
