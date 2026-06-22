@@ -15,9 +15,17 @@
 
 - [x] D7 — Frontend integration (text path): static demo UI served at `/ui` (upload → session → ask → lyric render + citations + history). pytest 40/40; HTTP smoke passed. **Pending: tag `v0.1-text`.**
 
-## Week 2 (next up)
-- [ ] D8 — Streaming transcript ingest: STT + `WS /stream` or SSE + rolling per-session transcript buffer.
-- [ ] D9 — Trigger engine: manual button + periodic 30s scan → `/rescue` on the transcript window.
+- [x] D8 — Streaming transcript ingest: `transcript/` (buffer + service), `WS /stream/{session_id}` ingest+ack, STT decision (text-over-WS; audio stretch). pytest 46/46.
+
+## D9 — Trigger engine (next)
+Goal: decide when to fire a rescue from the transcript buffer and call `/rescue` with the recent window (recording the turn). Serves PRD §5.
+- [ ] `triggers/` engine: manual trigger + periodic 30s scan over `transcript.get_window`; threshold to avoid empty/duplicate fires — dev — scan returns a rescue when the window is non-trivial.
+- [ ] Wire into `WS /stream` (or an endpoint): on periodic tick / manual msg → `generate_rescue(window, session_id)` → push script back over WS — dev — transcript → trigger → rescue → recorded turn.
+- [ ] Tests: trigger logic + WS rescue push — dev — green keyless.
+
+## Backlog
+- [ ] D10 slip/flow detection; D11 keyword/silence auto-triggers (stretch).
+- [ ] D6 follow-ups: live `run_eval.py` grounding rate; latency via streaming.
 
 ## Format
 `- [ ] <task> — owner — acceptance criteria`

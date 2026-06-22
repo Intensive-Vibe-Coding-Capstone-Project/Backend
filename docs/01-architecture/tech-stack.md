@@ -33,7 +33,8 @@
 - [x] Vector store — **Chroma** (local persistent at `./.chroma`).
 - [x] Python — **≥3.11** (dev 3.14, CI 3.11/3.12).
 
+- [x] STT (D8) — **defer audio; MVP ingests transcript text over `WS /stream`.** Audio STT (Gemini live / Google STT) is stretch (D11).
+
 ## Decisions still open
 
-- [ ] STT vendor (Google STT vs Gemini live) — decide D8.
 - [ ] Hosting for any live demo (Cloud Run / Kaggle notebook only).

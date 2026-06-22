@@ -31,15 +31,16 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 
 - **D7 ✅ Frontend integration — text path (dev done)** — single static demo page (`frontend/index.html`) served by FastAPI at `/ui` (`/` redirects); exercises upload → start session → ask → karaoke lyric-line render + grounded badge + citations + history. Mounted at `/ui` (not `/`) so the API `{error,detail}` 404 envelope is preserved. `pytest` **40/40**. **HTTP smoke passed**: `/`, `/ui/`, `/health`, upload, session, rescue, history all work over the network (rescue returned a graceful bridge — Gemini still in its 503 window).
 
-## Week 1 ✅ — text path works end to end (upload → index → ask-in-session → grounded lyric script + citations + history), demoable in the browser. Pending: tag `v0.1-text`.
+## Week 1 ✅ — text path works end to end (upload → index → ask-in-session → grounded lyric script + citations + history), demoable in the browser. Tagged **`v0.1-text`**.
+
+- **D8 ✅ Streaming transcript ingest (dev done)** — `transcript/` module: `TranscriptBuffer` (rolling, timestamped, `window(s)` + `silence_seconds`, injectable clock), per-session `service` (validate session, append, window, silence), and `WS /stream/{session_id}` that ingests transcript text and acks `{segments, window_chars, silence_s}` (rejects unknown session with close 4404). **STT decision:** MVP = transcript text over WS; audio STT is stretch (D11). `pytest` **46/46** keyless (TestClient WS).
 
 ## In progress
-- D6 follow-ups before submit: re-run live `run_eval.py` for a real grounding rate; address latency via streaming (D8+).
-- Tag `v0.1-text` once confirmed.
+- D6 follow-ups before submit: re-run live `run_eval.py` for a real grounding rate; address latency via streaming.
 - D1 wrap-up: optional — fill team roles in roadmap.
 
 ## Next (per roadmap)
-- **Week 2 — D8: streaming transcript ingest** (STT; `WS /stream` or SSE; rolling transcript buffer). Then triggers (D9), slip detection (D10), polish + Kaggle submit.
+- **D9: Trigger engine** — manual button + periodic 30s scan over the transcript window → call `/rescue` (record turn); wire to the buffer from D8.
 
 ## Blockers / open questions
 - STT vendor (decide D8) and demo hosting still open — not blocking Week 1.
@@ -47,4 +48,4 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - Note: deps install fine on local Python 3.14; CI pins 3.11/3.12. Watch for chromadb/google-genai 3.14 wheel issues when installing `.[rag]` on D3.
 
 ## Last updated
-2026-06-22 — by: D7 frontend integration (text-path demo UI)
+2026-06-22 — by: D8 streaming transcript ingest (WS /stream + buffer)
