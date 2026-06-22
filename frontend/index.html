@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cue — Presentation Rescue (text path)</title>
+    <style>
+      :root {
+        --bg: #0f1221;
+        --panel: #1a1f37;
+        --ink: #e8ecff;
+        --muted: #9aa3c7;
+        --accent: #7c8cff;
+        --good: #46d39a;
+        --warn: #f2b65a;
+        --line: #2a3157;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+      }
+      header {
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+      header h1 { font-size: 20px; margin: 0; }
+      header .tag { color: var(--muted); font-size: 13px; }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 24px;
+        display: grid;
+        gap: 18px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+      }
+      .panel h2 { margin: 0 0 12px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+      .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+      input[type="text"], textarea, input[type="file"] {
+        background: #0d1124; color: var(--ink); border: 1px solid var(--line);
+        border-radius: 10px; padding: 10px 12px; font-size: 15px; width: 100%;
+      }
+      textarea { min-height: 64px; resize: vertical; }
+      button {
+        background: var(--accent); color: #0b0e1c; border: 0; border-radius: 10px;
+        padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;
+      }
+      button.secondary { background: #2a3157; color: var(--ink); }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .muted { color: var(--muted); font-size: 13px; }
+      .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .chip { background: #0d1124; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 12px; color: var(--muted); }
+      .badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+      .badge.good { background: rgba(70,211,154,0.15); color: var(--good); }
+      .badge.warn { background: rgba(242,182,90,0.15); color: var(--warn); }
+      /* lyric render */
+      #script { margin-top: 14px; text-align: center; }
+      #script .line {
+        font-size: 26px; line-height: 1.5; font-weight: 600; padding: 4px 0;
+        opacity: 0; transform: translateY(6px); animation: rise 0.4s ease forwards;
+      }
+      @keyframes rise { to { opacity: 1; transform: none; } }
+      ul.history { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+      ul.history li { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+      ul.history .q { color: var(--muted); font-size: 13px; }
+      code { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🎤 Cue</h1>
+      <span class="tag">Presentation Rescue · text path demo · <code>v0.1-text</code></span>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>1 · Upload a document</h2>
+        <div class="row">
+          <input type="file" id="file" accept=".pdf,.docx,.txt,.pptx,.epub" />
+          <button id="uploadBtn">Upload &amp; index</button>
+          <button id="refreshDocs" class="secondary">Refresh list</button>
+        </div>
+        <div id="docs" class="chips"></div>
+      </section>
+
+      <section class="panel">
+        <h2>2 · Session</h2>
+        <div class="row">
+          <input type="text" id="title" placeholder="Session title (optional)" style="flex:1" />
+          <button id="startSession">Start session</button>
+        </div>
+        <p class="muted" id="sessionInfo">No active session.</p>
+      </section>
+
+      <section class="panel">
+        <h2>3 · Ask — get a rescue</h2>
+        <textarea id="question" placeholder="Type the hard question you just got…"></textarea>
+        <div class="row" style="margin-top:10px">
+          <button id="askBtn">Rescue me</button>
+          <span id="status" class="muted"></span>
+          <span id="grounded"></span>
+        </div>
+        <div id="script"></div>
+        <div id="citations" class="chips"></div>
+      </section>
+
+      <section class="panel">
+        <h2>4 · Session history</h2>
+        <button id="refreshHistory" class="secondary">Refresh history</button>
+        <ul class="history" id="history"></ul>
+      </section>
+    </main>
+
+    <script>
+      let sessionId = null;
+
+      async function api(path, opts) {
+        const res = await fetch(path, opts);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.detail || res.statusText);
+        return body;
+      }
+
+      const $ = (id) => document.getElementById(id);
+
+      async function loadDocs() {
+        const docs = await api("/documents");
+        $("docs").innerHTML = docs.length
+          ? docs.map((d) => `<span class="chip">${d.filename} · ${d.n_chunks} chunks</span>`).join("")
+          : '<span class="muted">No documents yet.</span>';
+      }
+
+      $("uploadBtn").onclick = async () => {
+        const f = $("file").files[0];
+        if (!f) return alert("Choose a file first.");
+        const fd = new FormData();
+        fd.append("file", f);
+        $("uploadBtn").disabled = true;
+        try {
+          const d = await api("/documents", { method: "POST", body: fd });
+          await loadDocs();
+          alert(`Indexed ${d.filename} (${d.n_chunks} chunks).`);
+        } catch (e) {
+          alert("Upload failed: " + e.message);
+        } finally {
+          $("uploadBtn").disabled = false;
+        }
+      };
+      $("refreshDocs").onclick = loadDocs;
+
+      $("startSession").onclick = async () => {
+        const s = await api("/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: $("title").value || null }),
+        });
+        sessionId = s.id;
+        $("sessionInfo").innerHTML = `Active session <code>${s.id.slice(0, 8)}</code>${s.title ? " · " + s.title : ""}`;
+        await loadHistory();
+      };
+
+      function renderScript(resp) {
+        const badge = resp.grounded
+          ? '<span class="badge good">grounded</span>'
+          : '<span class="badge warn">bridge</span>';
+        $("grounded").innerHTML = badge;
+        $("script").innerHTML = resp.lines
+          .map((l, i) => `<div class="line" style="animation-delay:${i * 0.12}s">${l}</div>`)
+          .join("");
+        $("citations").innerHTML = resp.citations
+          .map((c) => `<span class="chip">${c.filename} · #${c.chunk_index} · ${c.score.toFixed(2)}</span>`)
+          .join("");
+      }
+
+      $("askBtn").onclick = async () => {
+        const q = $("question").value.trim();
+        if (!q) return;
+        $("askBtn").disabled = true;
+        $("status").textContent = "Thinking…";
+        try {
+          const resp = await api("/rescue", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: q, session_id: sessionId }),
+          });
+          renderScript(resp);
+          $("status").textContent = "";
+          if (sessionId) await loadHistory();
+        } catch (e) {
+          $("status").textContent = "Error: " + e.message;
+        } finally {
+          $("askBtn").disabled = false;
+        }
+      };
+
+      async function loadHistory() {
+        if (!sessionId) return;
+        const s = await api(`/sessions/${sessionId}`);
+        $("history").innerHTML = s.turns.length
+          ? s.turns
+              .map(
+                (t) =>
+                  `<li><div class="q">Q: ${t.question}</div><div>${t.lines.join(" / ")}</div></li>`
+              )
+              .join("")
+          : '<li class="muted">No turns yet.</li>';
+      }
+      $("refreshHistory").onclick = loadHistory;
+
+      loadDocs();
+    </script>
+  </body>
+</html>

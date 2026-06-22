@@ -6,12 +6,18 @@ roadmap day lands them. Keep this file thin: wiring only, no business logic.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from cue import __version__
 from cue.api.errors import register_error_handlers
 from cue.api.routes import documents, health, rescue, sessions
+
+_FRONTEND_DIR = Path(__file__).resolve().parents[3] / "frontend"
 
 
 def create_app() -> FastAPI:
@@ -38,5 +44,15 @@ def create_app() -> FastAPI:
     app.include_router(sessions.router)  # D5: sessions + history
     # Wired on their roadmap days:
     #   D8:    stream (WS/SSE) router
+
+    # D7: text-path demo UI. Mounted at /ui (not /) so unknown API paths still
+    # return the {error, detail} envelope. `GET /` redirects to it for convenience.
+    if _FRONTEND_DIR.is_dir():
+
+        @app.get("/", include_in_schema=False)
+        def _root() -> RedirectResponse:
+            return RedirectResponse(url="/ui/")
+
+        app.mount("/ui", StaticFiles(directory=_FRONTEND_DIR, html=True), name="ui")
 
     return app
