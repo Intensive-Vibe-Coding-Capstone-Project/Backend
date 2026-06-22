@@ -62,8 +62,19 @@ class Settings(BaseSettings):
             return "gemini" if self.gemini_configured else "fake"
         return self.embeddings_provider
 
-    # --- Latency / generation ---
+    # --- Rescue / generation ---
+    generation_provider: Literal["auto", "gemini", "fake"] = "auto"
+    rescue_temperature: float = 0.3
+    rescue_max_passages: int = 5
+    rescue_min_score: float = 0.25  # min top cosine score to treat as supported
     rescue_timeout_s: float = 4.0
+
+    @property
+    def active_generation_provider(self) -> Literal["gemini", "fake"]:
+        """Resolve `auto` to a concrete generation provider based on key presence."""
+        if self.generation_provider == "auto":
+            return "gemini" if self.gemini_configured else "fake"
+        return self.generation_provider
 
     @property
     def gemini_configured(self) -> bool:
