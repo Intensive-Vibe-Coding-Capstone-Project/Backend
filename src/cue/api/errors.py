@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -26,5 +27,7 @@ def register_error_handlers(app: FastAPI) -> None:
     async def _validation_exc(request: Request, exc: RequestValidationError) -> JSONResponse:
         return JSONResponse(
             status_code=422,
-            content=_error_body("validation_error", exc.errors()),
+            # jsonable_encoder drops non-serializable bits (e.g. a raw ValueError
+            # pydantic stows in a validator error's ctx).
+            content=_error_body("validation_error", jsonable_encoder(exc.errors())),
         )
