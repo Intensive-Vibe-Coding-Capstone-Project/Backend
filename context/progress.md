@@ -20,16 +20,21 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - **D4 ✅ Verified** — `pytest` **29/29** keyless (fake generator+embedder; grounding seed gate passes). **Live smoke passed**: supported Q → grounded line-by-line script + citation (score 0.68); unsupported Q → graceful refusal, no hallucination. Fixed a latent D1 bug: validation-error handler now runs `exc.errors()` through `jsonable_encoder`.
 - **D5 ✅ Sessions + history + lyric formatting (dev done)** — `sessions/` module: stdlib sqlite3 store (sessions + turns), models, service; `POST /sessions`, `GET /sessions/{id}` (404 if absent), `GET /sessions`. `POST /rescue` takes optional `session_id` → records the turn (unknown session → 404). `rescue/formatting.to_lyric_lines` wraps scripts to ≤`lyric_max_chars` (42). **Robustness:** generation failures (e.g. transient Gemini 503) degrade to the safe bridge line instead of 500.
 - **D5 ✅ Verified** — `pytest` **36/36** keyless (temp sqlite per test). **Live full-stack smoke passed**: create session → real Gemini rescue w/ `session_id` → history shows the turn (lyric lines + citations) → **persists across a fresh store instance**. (Hit a transient Gemini 503 first; retry succeeded — now handled gracefully.)
+- **D6 ✅ QA + harden (dev done)** — grounding eval expanded to **13 Q/A** + reusable `tests/eval/run_eval.py` (accuracy + latency, exits non-zero <90%). Hardening: **refusal detection** (model "I don't have…" → grounded=False) is now the primary grounding guard; `rescue_min_score` demoted to a 0.4 floor (Gemini embeddings are anisotropic — even nonsense ~0.6 on short text); `max_output_tokens` cap; **retry-on-503** (3 attempts) + existing graceful bridge; fake embedder now tokenizes on word chars. `pytest` **37/37** keyless.
+
+## QA verdict (D6) — CONDITIONAL PASS
+- **Offline grounding gate: PASS** — deterministic 13-case eval classifies correctly (fake embedder, threshold 0.3); 37/37 tests; ruff clean. This is the reproducible CI gate.
+- **Live grounding eval: BLOCKED by a sustained Gemini Flash 503 outage** during D6. Healthy-API run earlier showed on-topic grounding working (the misses were the now-fixed threshold/refusal issues; refusal detection verified fixing off-topic). **Re-run `run_eval.py` in a healthy window before submission (D12/D13).**
+- **Latency: OVER budget** — healthy rescues ~5–8s vs ~4s (PRD §8). Mitigation = token streaming (deferred to D8+ streaming work); output capped. Degraded/bridge path is <4s.
+- **Edge cases:** empty store → bridge ✓; unsupported type → 415 ✓; empty/oversized → 422/413 ✓; missing session → 404 ✓; transient 503 → retry then graceful bridge ✓.
+- **Robustness:** the rescue path never hard-fails (retry + bridge + refusal detection).
 
 ## In progress
-- D5 → hand off to `/qa-review` (latency + grounding eval).
+- D6 follow-ups before submit: re-run live `run_eval.py` for a real grounding rate; address latency via streaming (D8+).
 - D1 wrap-up: optional — fill team roles in roadmap.
 
 ## Next (per roadmap)
-- **D6: QA + harden** — grounding eval set 10–15 Q/A, latency check, error handling; tune `rescue_min_score`. **End of Week 1.**
-
-## Watch / tune
-- `rescue_min_score=0.25` is lenient for single-doc corpora with Gemini embeddings (off-topic still scored >0.25 in smoke). Tune in D6 grounding eval; consider refusal detection so grounded=False is reported when the model bridges.
+- **D7: integrate with frontend (text path)** — end-to-end text demo with the frontend repo; tag `v0.1-text`. **End of Week 1.**
 
 ## Blockers / open questions
 - STT vendor (decide D8) and demo hosting still open — not blocking Week 1.
@@ -37,4 +42,4 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - Note: deps install fine on local Python 3.14; CI pins 3.11/3.12. Watch for chromadb/google-genai 3.14 wheel issues when installing `.[rag]` on D3.
 
 ## Last updated
-2026-06-22 — by: D5 dev (sessions + history + lyric formatting)
+2026-06-22 — by: D6 QA + harden (eval, grounding, robustness)
