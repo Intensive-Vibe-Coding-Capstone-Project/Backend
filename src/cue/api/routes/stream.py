@@ -23,6 +23,8 @@ from cue.sessions.errors import SessionNotFoundError
 from cue.transcript import service
 from cue.transcript.models import TranscriptMessage
 from cue.triggers import engine as triggers
+from cue.triggers import slip
+from cue.triggers.slip import SlipCorrection
 
 router = APIRouter()
 
@@ -38,6 +40,16 @@ def _rescue_payload(response: RescueResponse, mode: str) -> dict:
         "lines": response.lines,
         "grounded": response.grounded,
         "citations": [c.model_dump() for c in response.citations],
+    }
+
+
+def _correction_payload(correction: SlipCorrection) -> dict:
+    return {
+        "type": "correction",
+        "kind": correction.kind,
+        "wrong_terms": correction.wrong_terms,
+        "lines": correction.lines,
+        "message": correction.message,
     }
 
 
@@ -63,6 +75,9 @@ async def stream(websocket: WebSocket, session_id: str) -> None:
             response = await asyncio.to_thread(triggers.fire, session_id, "periodic")
             if response is not None:
                 await send(_rescue_payload(response, "periodic"))
+            correction = await asyncio.to_thread(slip.check, session_id)
+            if correction is not None:
+                await send(_correction_payload(correction))
 
     scan_task = asyncio.create_task(auto_scan())
     try:
@@ -71,6 +86,11 @@ async def stream(websocket: WebSocket, session_id: str) -> None:
             if data.get("type") == "trigger":
                 response = await asyncio.to_thread(triggers.fire, session_id, "manual")
                 await send(_rescue_payload(response, "manual") if response else {"type": "none"})
+                continue
+
+            if data.get("type") == "check_slip":
+                correction = await asyncio.to_thread(slip.check, session_id)
+                await send(_correction_payload(correction) if correction else {"type": "none"})
                 continue
 
             try:
