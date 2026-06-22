@@ -17,11 +17,13 @@
 
 - [x] D8 — Streaming transcript ingest: `transcript/` (buffer + service), `WS /stream/{session_id}` ingest+ack, STT decision (text-over-WS; audio stretch). pytest 46/46.
 
-## D9 — Trigger engine (next)
-Goal: decide when to fire a rescue from the transcript buffer and call `/rescue` with the recent window (recording the turn). Serves PRD §5.
-- [ ] `triggers/` engine: manual trigger + periodic 30s scan over `transcript.get_window`; threshold to avoid empty/duplicate fires — dev — scan returns a rescue when the window is non-trivial.
-- [ ] Wire into `WS /stream` (or an endpoint): on periodic tick / manual msg → `generate_rescue(window, session_id)` → push script back over WS — dev — transcript → trigger → rescue → recorded turn.
-- [ ] Tests: trigger logic + WS rescue push — dev — green keyless.
+- [x] D9 — Trigger engine: `triggers/engine.py` (manual + periodic, should_fire dedup + ungrounded suppression, records turn); WS `{type:"trigger"}` + periodic scan task (send lock, to_thread). pytest 52/52.
+
+## D10 — Slip / flow detection (next)
+Goal: diff the spoken transcript window vs the prepared script → flag divergence (wrong brand / off-flow) → correction script. Serves PRD §4 #3/#4.
+- [ ] Prepared-script per session (bind on session create or upload); compare transcript window vs prepared (embeddings/keyword diff) — dev.
+- [ ] Correction-mode prompt + trigger when divergence detected — dev.
+- [ ] Tests — dev — green keyless.
 
 ## Backlog
 - [ ] D10 slip/flow detection; D11 keyword/silence auto-triggers (stretch).

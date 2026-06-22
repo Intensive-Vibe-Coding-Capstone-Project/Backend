@@ -34,13 +34,14 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 ## Week 1 ✅ — text path works end to end (upload → index → ask-in-session → grounded lyric script + citations + history), demoable in the browser. Tagged **`v0.1-text`**.
 
 - **D8 ✅ Streaming transcript ingest (dev done)** — `transcript/` module: `TranscriptBuffer` (rolling, timestamped, `window(s)` + `silence_seconds`, injectable clock), per-session `service` (validate session, append, window, silence), and `WS /stream/{session_id}` that ingests transcript text and acks `{segments, window_chars, silence_s}` (rejects unknown session with close 4404). **STT decision:** MVP = transcript text over WS; audio STT is stretch (D11). `pytest` **46/46** keyless (TestClient WS).
+- **D9 ✅ Trigger engine (dev done)** — `triggers/engine.py`: `fire(session_id, mode)` — **manual** (rescue on the current window now) + **periodic** (gated by `should_fire`: min-chars + dedup vs last fire, and ungrounded bridges suppressed so the 30s auto-scan stays quiet). Records the turn on every fire. WS protocol extended: `{type:"trigger"}` → push `{type:"rescue", mode, ...}`; per-connection periodic asyncio scan task; sends serialized with a lock; the LLM call runs via `asyncio.to_thread` (doesn't block the event loop). `pytest` **52/52** keyless.
 
 ## In progress
 - D6 follow-ups before submit: re-run live `run_eval.py` for a real grounding rate; address latency via streaming.
 - D1 wrap-up: optional — fill team roles in roadmap.
 
 ## Next (per roadmap)
-- **D9: Trigger engine** — manual button + periodic 30s scan over the transcript window → call `/rescue` (record turn); wire to the buffer from D8.
+- **D10: Slip / flow detection** — diff the spoken transcript window vs the prepared script → detect divergence (wrong brand / off-flow) → correction script (PRD use cases 3 & 4).
 
 ## Blockers / open questions
 - STT vendor (decide D8) and demo hosting still open — not blocking Week 1.
@@ -48,4 +49,4 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - Note: deps install fine on local Python 3.14; CI pins 3.11/3.12. Watch for chromadb/google-genai 3.14 wheel issues when installing `.[rag]` on D3.
 
 ## Last updated
-2026-06-22 — by: D8 streaming transcript ingest (WS /stream + buffer)
+2026-06-22 — by: D9 trigger engine (manual + periodic scan over WS)
