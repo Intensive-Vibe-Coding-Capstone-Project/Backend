@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     reasoning_model: str = "gemini-2.5-pro"
     embedding_model: str = "gemini-embedding-001"
 
+    # --- Ingestion ---
+    max_upload_mb: int = 20
+    preview_chars: int = 200
+
     # --- RAG / retrieval ---
     chroma_dir: str = ".chroma"
     chunk_size: int = 800
