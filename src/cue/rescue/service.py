@@ -28,6 +28,34 @@ BRIDGE_LINE = (
     "That's a great question — let me give you the precise detail on that in just a moment."
 )
 
+# If the model says it can't answer from the passages, treat it as unsupported.
+# This is the primary grounding guard (the score floor is just a pre-filter):
+# embedding similarity alone is unreliable for short queries.
+_REFUSAL_MARKERS = (
+    "i don't have",
+    "i do not have",
+    "don't have that",
+    "do not have that",
+    "don't cover",
+    "do not cover",
+    "not covered",
+    "isn't covered",
+    "no information",
+    "no relevant",
+    "no details",
+    "cannot answer",
+    "can't answer",
+    "unable to answer",
+    "doesn't mention",
+    "don't mention",
+    "not mentioned",
+)
+
+
+def _is_refusal(text: str) -> bool:
+    lowered = text.lower()
+    return any(marker in lowered for marker in _REFUSAL_MARKERS)
+
 
 def _bridge() -> RescueResponse:
     return RescueResponse(script=BRIDGE_LINE, lines=[BRIDGE_LINE], grounded=False, citations=[])
@@ -46,6 +74,10 @@ def _build_response(question: str, k: int | None, settings: Settings) -> RescueR
         # A live tool must never hard-fail on the rescue path (e.g. a transient
         # Gemini 503) — degrade to the safe bridge line instead.
         logger.exception("Rescue generation failed; returning bridge line")
+        return _bridge()
+
+    if _is_refusal(text):
+        # The model judged the passages insufficient — report unsupported.
         return _bridge()
 
     lines = to_lyric_lines(text, settings.lyric_max_chars)

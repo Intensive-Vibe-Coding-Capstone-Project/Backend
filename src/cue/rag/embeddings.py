@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import hashlib
 import math
+import re
 from typing import Protocol, runtime_checkable
 
 from cue.config import Settings, get_settings
+
+_TOKEN = re.compile(r"[a-z0-9]+")
 
 
 @runtime_checkable
@@ -41,7 +44,7 @@ class FakeEmbedder:
 
     def _embed(self, text: str) -> list[float]:
         vec = [0.0] * self._dim
-        for token in text.lower().split():
+        for token in _TOKEN.findall(text.lower()):
             bucket = int(hashlib.md5(token.encode()).hexdigest(), 16) % self._dim
             vec[bucket] += 1.0
         norm = math.sqrt(sum(value * value for value in vec)) or 1.0

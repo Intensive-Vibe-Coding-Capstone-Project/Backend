@@ -70,7 +70,14 @@ class Settings(BaseSettings):
     generation_provider: Literal["auto", "gemini", "fake"] = "auto"
     rescue_temperature: float = 0.3
     rescue_max_passages: int = 5
-    rescue_min_score: float = 0.25  # min top cosine score to treat as supported
+    rescue_max_output_tokens: int = 512  # short spoken script; caps generation latency
+    rescue_max_attempts: int = 3  # retry transient Gemini 5xx before bridging
+    # Cheap floor that skips the LLM when retrieval clearly returns nothing.
+    # NOT the main grounding guard: Gemini embeddings are anisotropic (even
+    # nonsense scores ~0.6 on short text), so refusal detection on the model's
+    # output is the real signal. The fake embedder is on a different scale, so
+    # tests override this via CUE_RESCUE_MIN_SCORE.
+    rescue_min_score: float = 0.4
     rescue_timeout_s: float = 4.0
 
     @property
