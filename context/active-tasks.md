@@ -13,8 +13,11 @@
 - [ ] Re-run live `tests/eval/run_eval.py` in a healthy-API window → record real grounding rate (target ≥90%) — owner.
 - [ ] Latency: stream tokens to cut perceived time vs ~4s budget — owner — tackle with D8+ streaming.
 
-## D7 — Frontend integration (text path), end of Week 1
-- [ ] End-to-end text demo with the frontend repo; tag `v0.1-text` — owner — upload → ask → grounded script renders.
+- [x] D7 — Frontend integration (text path): static demo UI served at `/ui` (upload → session → ask → lyric render + citations + history). pytest 40/40; HTTP smoke passed. **Pending: tag `v0.1-text`.**
+
+## Week 2 (next up)
+- [ ] D8 — Streaming transcript ingest: STT + `WS /stream` or SSE + rolling per-session transcript buffer.
+- [ ] D9 — Trigger engine: manual button + periodic 30s scan → `/rescue` on the transcript window.
 
 ## Format
 `- [ ] <task> — owner — acceptance criteria`

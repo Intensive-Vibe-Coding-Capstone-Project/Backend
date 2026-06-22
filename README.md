@@ -22,14 +22,16 @@ Requires **Python ≥3.11** (developed on 3.14).
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate   ·   macOS/Linux: source .venv/bin/activate
-pip install -e ".[dev]"          # core + test/lint toolchain
+pip install -e ".[dev,parsers,rag]"   # core + tooling + parsers + Gemini/Chroma
 cp .env.example .env             # then add your GEMINI_API_KEY
 
 ruff check . && ruff format --check .   # lint
-pytest                                   # tests
-cue                                      # run dev server at http://127.0.0.1:8000  (docs at /docs)
+pytest                                   # tests (run keyless against fakes)
+cue                                      # dev server at http://127.0.0.1:8000
 ```
-Optional dependency groups land as features do: `pip install -e ".[parsers]"` (D2 doc parsing), `".[rag]"` (D3 Gemini + Chroma).
+Then open **http://127.0.0.1:8000/** for the text-path demo UI (upload → ask → grounded lyric-line rescue). API docs at `/docs`.
+
+Without a `GEMINI_API_KEY` everything still runs on deterministic offline fakes (embeddings + generation), so tests/CI stay green. A live grounding + latency check: `python tests/eval/run_eval.py`.
 
 ## How we build it
 **Loop Engineering** (planner → dev → QA agents) on top of a **Context Engineering** docs system, using **Claude Code** + Agent Skills in [.claude/skills/](.claude/skills/). See the [playbook](docs/05-context-engineering/playbook.md).
