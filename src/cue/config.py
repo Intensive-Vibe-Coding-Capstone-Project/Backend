@@ -51,6 +51,23 @@ class Settings(BaseSettings):
     silence_threshold_s: float = 10.0  # silence longer than this can trigger
     scan_interval_s: float = 30.0  # periodic auto-scan cadence
     trigger_min_chars: int = 20  # ignore windows shorter than this on auto-scan
+    # Urgent phrases that fire a rescue immediately on the auto-scan, even below
+    # `trigger_min_chars` — they signal the speaker is stumbling / stalling.
+    trigger_keywords: list[str] = Field(
+        default_factory=lambda: [
+            "good question",
+            "great question",
+            "let me think",
+            "let me get back",
+            "i'm not sure",
+            "i am not sure",
+            "not quite sure",
+            "bear with me",
+            "give me a moment",
+            "where was i",
+            "hold on",
+        ]
+    )
     # Off-flow slip: flag when < this fraction of spoken words appear in the
     # prepared script (lexical, provider-independent).
     slip_min_overlap: float = 0.3

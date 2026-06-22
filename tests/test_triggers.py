@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import time
+
 from fastapi.testclient import TestClient
 
+from cue.config import get_settings
 from cue.ingestion.models import DocType, ParsedDocument
 from cue.rag import index
 from cue.sessions import service as sessions_service
@@ -71,6 +74,60 @@ def test_periodic_suppresses_ungrounded_and_dedups() -> None:
     assert first is not None and first.grounded is True
     # ...and dedups on an unchanged window.
     assert engine.fire(session.id, "periodic") is None
+
+
+# --- keyword + silence auto-triggers (D11) -----------------------------------
+
+
+def test_matched_keyword() -> None:
+    kws = get_settings().trigger_keywords
+    assert engine.matched_keyword("hmm, that's a good question really", kws) == "good question"
+    assert engine.matched_keyword("just carrying on as normal here", kws) is None
+
+
+def test_auto_reason_keyword_beats_length_gate() -> None:
+    session = sessions_service.create_session()
+    # "good question" is only 13 chars — under trigger_min_chars (20) — so a
+    # plain periodic scan wouldn't fire, but the keyword reason still does.
+    transcript_service.append_segment(session.id, "good question")
+    assert engine.auto_reason(session.id, get_settings()) == "keyword"
+
+
+def test_auto_fire_keyword_grounds_and_records() -> None:
+    _index_doc()
+    session = sessions_service.create_session()
+    transcript_service.append_segment(session.id, "good question — " + WINDOW)
+    response, mode = engine.auto_fire(session.id)
+    assert mode == "keyword"
+    assert response is not None and response.grounded is True
+    assert len(sessions_service.get_session_detail(session.id).turns) == 1
+
+
+def test_auto_fire_silence_when_speaker_pauses() -> None:
+    _index_doc()
+    session = sessions_service.create_session()
+    # Last utterance landed 12s ago: inside the 30s window but past the 10s
+    # silence threshold, and it carries no keyword -> "silence".
+    transcript_service.append_segment(session.id, WINDOW, ts=time.time() - 12)
+    response, mode = engine.auto_fire(session.id)
+    assert mode == "silence"
+    assert response is not None and response.grounded is True
+
+
+def test_auto_fire_periodic_on_fresh_content() -> None:
+    _index_doc()
+    session = sessions_service.create_session()
+    transcript_service.append_segment(session.id, WINDOW)  # recent, no keyword
+    response, mode = engine.auto_fire(session.id)
+    assert mode == "periodic"
+    assert response is not None
+    # Dedups: unchanged window yields nothing on the next scan.
+    assert engine.auto_fire(session.id) == (None, None)
+
+
+def test_auto_fire_quiet_when_idle() -> None:
+    session = sessions_service.create_session()
+    assert engine.auto_fire(session.id) == (None, None)
 
 
 # --- WS manual trigger -------------------------------------------------------

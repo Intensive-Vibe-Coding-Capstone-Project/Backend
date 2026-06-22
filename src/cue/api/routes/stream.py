@@ -4,9 +4,10 @@ Client sends JSON messages:
 - ``{"type": "transcript", "text": ...}`` — append to the session buffer (acked).
 - ``{"type": "trigger"}`` — manual rescue on the current transcript window.
 
-The server also runs a periodic auto-scan (every ``scan_interval_s``) and pushes
-a rescue when the recent window has new, grounded content. Rescues are pushed as
-``{"type": "rescue", "mode": "manual"|"periodic", ...}``.
+The server also runs a periodic auto-scan (every ``scan_interval_s``) that fires
+on new grounded content, an urgent keyword, or a silence gap. Rescues are pushed
+as ``{"type": "rescue", "mode": "manual"|"periodic"|"keyword"|"silence", ...}``;
+slip corrections as ``{"type": "correction", ...}``.
 """
 
 from __future__ import annotations
@@ -72,9 +73,9 @@ async def stream(websocket: WebSocket, session_id: str) -> None:
     async def auto_scan() -> None:
         while True:
             await asyncio.sleep(settings.scan_interval_s)
-            response = await asyncio.to_thread(triggers.fire, session_id, "periodic")
-            if response is not None:
-                await send(_rescue_payload(response, "periodic"))
+            response, mode = await asyncio.to_thread(triggers.auto_fire, session_id)
+            if response is not None and mode is not None:
+                await send(_rescue_payload(response, mode))
             correction = await asyncio.to_thread(slip.check, session_id)
             if correction is not None:
                 await send(_correction_payload(correction))
