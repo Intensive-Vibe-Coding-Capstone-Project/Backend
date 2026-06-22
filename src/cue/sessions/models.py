@@ -41,6 +41,13 @@ class SessionCreate(BaseModel):
     title: str | None = None
 
 
+class PreparedScript(BaseModel):
+    """The intended talk/sales script + brand terms the speaker must not misname."""
+
+    text: str
+    forbidden_terms: list[str] = []
+
+
 class SessionMeta(Session):
     """List-safe session view with a turn count (no turn bodies)."""
 

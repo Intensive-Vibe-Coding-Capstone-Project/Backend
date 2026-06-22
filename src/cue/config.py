@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     silence_threshold_s: float = 10.0  # silence longer than this can trigger
     scan_interval_s: float = 30.0  # periodic auto-scan cadence
     trigger_min_chars: int = 20  # ignore windows shorter than this on auto-scan
+    # Off-flow slip: flag when < this fraction of spoken words appear in the
+    # prepared script (lexical, provider-independent).
+    slip_min_overlap: float = 0.3
 
     # --- Embeddings ---
     # auto = use Gemini when a key is present, else the offline fake embedder.

@@ -5,7 +5,8 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from cue.sessions import service
-from cue.sessions.models import SessionCreate, SessionDetail, SessionMeta
+from cue.sessions.errors import SessionNotFoundError
+from cue.sessions.models import PreparedScript, SessionCreate, SessionDetail, SessionMeta
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -31,3 +32,12 @@ def get_session(session_id: str) -> SessionDetail:
     if detail is None:
         raise HTTPException(status_code=404, detail=f"Session not found: {session_id}")
     return detail
+
+
+@router.put("/{session_id}/script", status_code=204)
+def set_prepared_script(session_id: str, script: PreparedScript) -> None:
+    """Bind the prepared script (+ forbidden brand terms) used for slip detection."""
+    try:
+        service.set_prepared_script(session_id, script)
+    except SessionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"Session not found: {session_id}") from exc

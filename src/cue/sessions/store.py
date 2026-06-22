@@ -15,13 +15,15 @@ from pathlib import Path
 
 from cue.config import Settings, get_settings
 from cue.rescue.models import Citation
-from cue.sessions.models import Session, SessionMeta, Turn, now_iso
+from cue.sessions.models import PreparedScript, Session, SessionMeta, Turn, now_iso
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS sessions (
-    id         TEXT PRIMARY KEY,
-    title      TEXT,
-    created_at TEXT NOT NULL
+    id              TEXT PRIMARY KEY,
+    title           TEXT,
+    created_at      TEXT NOT NULL,
+    prepared_script TEXT,
+    forbidden_terms TEXT
 );
 CREATE TABLE IF NOT EXISTS turns (
     id         TEXT PRIMARY KEY,
@@ -49,6 +51,12 @@ class SessionStore:
             parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as conn:
             conn.executescript(_SCHEMA)
+            # Migrate pre-existing tables that lack the D10 columns.
+            for column in ("prepared_script TEXT", "forbidden_terms TEXT"):
+                try:
+                    conn.execute(f"ALTER TABLE sessions ADD COLUMN {column}")
+                except sqlite3.OperationalError:
+                    pass  # column already exists
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._db_path)
@@ -132,6 +140,24 @@ class SessionStore:
                 ),
             )
         return turn
+
+    def set_prepared_script(self, session_id: str, script: PreparedScript) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE sessions SET prepared_script = ?, forbidden_terms = ? WHERE id = ?",
+                (script.text, json.dumps(script.forbidden_terms), session_id),
+            )
+
+    def get_prepared_script(self, session_id: str) -> PreparedScript | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT prepared_script, forbidden_terms FROM sessions WHERE id = ?",
+                (session_id,),
+            ).fetchone()
+        if not row or row["prepared_script"] is None:
+            return None
+        terms = json.loads(row["forbidden_terms"]) if row["forbidden_terms"] else []
+        return PreparedScript(text=row["prepared_script"], forbidden_terms=terms)
 
     def get_turns(self, session_id: str) -> list[Turn]:
         with self._connect() as conn:
