@@ -5,7 +5,7 @@ Real-time chat with RAG-powered responses and conversation history.
 
 import uuid
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from fastapi import APIRouter, HTTPException
 
 from app.models.schemas import (
@@ -41,8 +41,8 @@ async def send_message(request: ChatMessageRequest):
             title=request.message[:50] + ("..." if len(request.message) > 50 else ""),
             messages=[],
             document_ids=request.document_ids or [],
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
     conversation = _conversations[conv_id]
@@ -72,7 +72,7 @@ async def send_message(request: ChatMessageRequest):
         ],
     )
     conversation.messages.append(assistant_msg)
-    conversation.updated_at = datetime.utcnow()
+    conversation.updated_at = datetime.now(UTC)
 
     # Build response with lyrics-style formatted lines
     return ChatMessageResponse(

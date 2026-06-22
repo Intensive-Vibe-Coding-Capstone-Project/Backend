@@ -4,7 +4,7 @@ Pydantic models (schemas) for API request/response validation.
 
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, UTC
 from enum import Enum
 
 
@@ -57,7 +57,7 @@ class DocumentResponse(BaseModel):
     size_bytes: int
     chunk_count: int = 0
     status: DocumentStatus = DocumentStatus.PROCESSING
-    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class DocumentUploadResponse(BaseModel):
@@ -120,7 +120,7 @@ class MessageRecord(BaseModel):
     role: str  # "user" or "assistant"
     content: str
     sources: list[SourceReference] = []
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class ConversationDetail(BaseModel):
