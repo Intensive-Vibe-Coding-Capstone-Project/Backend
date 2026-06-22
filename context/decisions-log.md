@@ -11,3 +11,6 @@
 | 2026-06-22 | **Gemini ids:** rescue=`gemini-2.5-flash`, reasoning=`gemini-2.5-pro`, embeddings=`gemini-embedding-001`; SDK = `google-genai`. | Flash = low-latency rescue (<4s budget); Pro for hard reasoning; one vendor for keys. All in `config.py`, not hard-coded. | team |
 | 2026-06-22 | **Python `>=3.11`** (dev on 3.14 local). | Matches conventions; modern typing; CI pins 3.11/3.12. | team |
 | 2026-06-22 | Backend skeleton: `src/cue/` package layout, FastAPI app factory, `pydantic-settings` config, `pytest`, `ruff`, GitHub Actions CI stub. | D1 roadmap deliverable; sets the loop's foundation. | team |
+| 2026-06-22 | Provider interfaces for embeddings + generation (`gemini`/`fake`, `auto` resolves on key) behind protocols. | Keeps tests + CI hermetic and keyless; live Gemini used only when a key is present. | team |
+| 2026-06-22 | Two-layer grounding for `/rescue`: retrieval score threshold → hard bridge (no LLM call); prompt rule → soft refusal. | Prevents hallucination even on borderline retrieval; `rescue_min_score` tunable in D6. | team |
+| 2026-06-22 | Session/turn persistence via **stdlib `sqlite3`** at `CUE_DB_PATH` (`./cue.db`, gitignored). | Persists across restarts (live demo); zero new deps; Kaggle-reproducible; matches tech-stack (SQLite dev → Postgres deploy). | team |
