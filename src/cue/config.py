@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     db_path: str = "cue.db"  # stdlib sqlite3 store for sessions + turns
     lyric_max_chars: int = 42  # max chars per rendered rescue line
 
+    # --- Transcript / triggers ---
+    transcript_window_s: float = 30.0  # recent window scanned for a rescue
+    silence_threshold_s: float = 10.0  # silence longer than this can trigger
+
     # --- Embeddings ---
     # auto = use Gemini when a key is present, else the offline fake embedder.
     embeddings_provider: Literal["auto", "gemini", "fake"] = "auto"
