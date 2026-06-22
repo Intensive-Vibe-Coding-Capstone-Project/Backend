@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 
 from cue import __version__
 from cue.api.errors import register_error_handlers
-from cue.api.routes import documents, health, rescue, sessions
+from cue.api.routes import documents, health, rescue, sessions, stream
 
 _FRONTEND_DIR = Path(__file__).resolve().parents[3] / "frontend"
 
@@ -42,8 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(documents.router)  # D2: ingestion
     app.include_router(rescue.router)  # D4: retrieval + generation
     app.include_router(sessions.router)  # D5: sessions + history
-    # Wired on their roadmap days:
-    #   D8:    stream (WS/SSE) router
+    app.include_router(stream.router)  # D8: streaming transcript ingest (WS)
 
     # D7: text-path demo UI. Mounted at /ui (not /) so unknown API paths still
     # return the {error, detail} envelope. `GET /` redirects to it for convenience.

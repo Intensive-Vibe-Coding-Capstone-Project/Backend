@@ -9,6 +9,7 @@ from cue.api.app import create_app
 from cue.config import get_settings
 from cue.rag import store
 from cue.sessions import store as session_store
+from cue.transcript import service as transcript_service
 
 
 @pytest.fixture(autouse=True)
@@ -28,10 +29,12 @@ def _isolate_store(tmp_path, monkeypatch) -> None:
     get_settings.cache_clear()
     store.reset_cache()
     session_store.reset_cache()
+    transcript_service.reset()
     yield
     get_settings.cache_clear()
     store.reset_cache()
     session_store.reset_cache()
+    transcript_service.reset()
 
 
 @pytest.fixture
