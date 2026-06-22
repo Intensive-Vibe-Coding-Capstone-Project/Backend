@@ -1,0 +1,5 @@
+{"id": "g1", "doc": "Cue returns a grounded rescue script when the speaker faces a hard question.", "question": "grounded rescue script hard question", "expect_grounded": true}
+{"id": "g2", "doc": "The periodic scan inspects the transcript every thirty seconds for trouble.", "question": "periodic scan transcript thirty seconds", "expect_grounded": true}
+{"id": "g3", "doc": "Upload your slides and notes so Cue can ground answers in your own material.", "question": "upload slides notes ground answers material", "expect_grounded": true}
+{"id": "g4", "doc": "A live seller naming the wrong brand triggers an immediate correction line.", "question": "live seller wrong brand correction line", "expect_grounded": true}
+{"id": "g5", "doc": "Cue returns a grounded rescue script when the speaker faces a hard question.", "question": "banana umbrella helicopter spaceship volcano", "expect_grounded": false}

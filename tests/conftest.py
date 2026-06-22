@@ -19,6 +19,7 @@ def _isolate_store(tmp_path, monkeypatch) -> None:
     """
     monkeypatch.setenv("CUE_CHROMA_DIR", str(tmp_path / "chroma"))
     monkeypatch.setenv("CUE_EMBEDDINGS_PROVIDER", "fake")
+    monkeypatch.setenv("CUE_GENERATION_PROVIDER", "fake")
     get_settings.cache_clear()
     store.reset_cache()
     yield
