@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from cue import __version__
 from cue.api.errors import register_error_handlers
-from cue.api.routes import health
+from cue.api.routes import documents, health
 
 
 def create_app() -> FastAPI:
@@ -33,8 +33,8 @@ def create_app() -> FastAPI:
     register_error_handlers(app)
 
     app.include_router(health.router)
+    app.include_router(documents.router)  # D2: ingestion
     # Wired on their roadmap days:
-    #   D2-D3: documents router (ingestion)
     #   D4:    rescue router
     #   D5:    sessions router
     #   D8:    stream (WS/SSE) router
