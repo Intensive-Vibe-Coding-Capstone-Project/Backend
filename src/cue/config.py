@@ -42,11 +42,25 @@ class Settings(BaseSettings):
     max_upload_mb: int = 20
     preview_chars: int = 200
 
+    # --- Embeddings ---
+    # auto = use Gemini when a key is present, else the offline fake embedder.
+    embeddings_provider: Literal["auto", "gemini", "fake"] = "auto"
+    embedding_dim: int = 256  # fake embedder dimension (Gemini sets its own)
+    embedding_batch_size: int = 100
+
     # --- RAG / retrieval ---
     chroma_dir: str = ".chroma"
+    chroma_collection: str = "cue_documents"
     chunk_size: int = 800
     chunk_overlap: int = 120
     retrieval_k: int = 5
+
+    @property
+    def active_embeddings_provider(self) -> Literal["gemini", "fake"]:
+        """Resolve `auto` to a concrete provider based on key presence."""
+        if self.embeddings_provider == "auto":
+            return "gemini" if self.gemini_configured else "fake"
+        return self.embeddings_provider
 
     # --- Latency / generation ---
     rescue_timeout_s: float = 4.0
