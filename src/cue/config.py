@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     max_upload_mb: int = 20
     preview_chars: int = 200
 
+    # --- Sessions / output ---
+    db_path: str = "cue.db"  # stdlib sqlite3 store for sessions + turns
+    lyric_max_chars: int = 42  # max chars per rendered rescue line
+
     # --- Embeddings ---
     # auto = use Gemini when a key is present, else the offline fake embedder.
     embeddings_provider: Literal["auto", "gemini", "fake"] = "auto"
