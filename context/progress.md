@@ -43,12 +43,15 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 
 - **D12 ⚠️ QA + eval pass — verdict FAIL vs grounding target (2026-06-24)** — Full `qa-review` over D2–D11. **Tests:** `pytest` **66/66** keyless, ruff check + format clean. **Edge cases / envelope:** 415 / 422 / 413 (oversized→`FileTooLargeError`) / 404 (`{error,detail}`), WS unknown session close 4404, unsupported question + generation failure → graceful bridge — all verified. **Live grounding eval finally ran clean** (throttled ~14s/case to beat the real free-tier limit, which is **5 req/min**, not 20/day): **11/13 = 85% — UNDER the ≥90% target.** All 10 on-topic cases ground correctly (10/10); off-topic refusal **leaked on 2/3** — `off1` ("banana umbrella…") and `off3` ("recipe chocolate cake…") returned grounded scripts for nonsense, only `off2` refused. **Latency (live):** p50 **4.08s** (≈budget), p95/max **7.60s** (over ~4s). Root cause = the D6-flagged risk, now confirmed live: anisotropic embeddings let all 3 off-topic Qs clear the 0.4 `rescue_min_score` floor → LLM called, and refusal detection (primary guard) caught only 1/3. Offline deterministic gate stays green (CI signal).
 
+- **D13 ✅ Kaggle submission writeup assembled (2026-06-24)** — filled `docs/04-delivery/kaggle-submission.md` from artifacts (PRD, system-design, demo-script, D12 eval): problem/users, 4 use cases, architecture + Loop-Engineering diagrams, AI-agent design, reproducibility (pinned deps, `GEMINI_API_KEY`→Kaggle Secrets, model ids, keyless fakes), and an **honest §8 results** section (offline 66/66 + 13/13 classify; live **85%** with the off-topic leak + p95 7.6s disclosed, not hidden). README Status refreshed to the real built state. **Remaining manual gaps (user):** record the demo video, package the Kaggle notebook (or link the repo + run steps), and the actual Submit. **Blocking a clean ≥90% submit:** the D12 grounding fix is still open.
+
 ## In progress
-- **D12 follow-up (blocks D13):** fix off-topic over-grounding → live grounding ≥90% (strengthen refusal prompt / add post-gen relevance check; min_score tuning is delicate). Latency via token streaming vs p95 7.6s.
+- **D12 follow-up (gates a clean submit):** fix off-topic over-grounding → live grounding ≥90% (strengthen refusal prompt / add post-gen relevance check; min_score tuning is delicate). Latency via token streaming vs p95 7.6s.
+- **D13 manual steps:** demo video, Kaggle notebook packaging, final Submit — owner.
 - D1 wrap-up: optional — fill team roles in roadmap.
 
 ## Next (per roadmap)
-- Land the D12 grounding fix + re-run the live eval (≥90%), then **D13 Kaggle submission**, D14 buffer/retro.
+- Land the D12 grounding fix → re-run live eval (≥90%) → finalize the writeup checklist → **Submit**. Then D14 buffer/retro.
 
 ## Blockers / open questions
 - STT vendor (decide D8) and demo hosting still open — not blocking Week 1.
@@ -56,4 +59,4 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - Note: deps install fine on local Python 3.14; CI pins 3.11/3.12. Watch for chromadb/google-genai 3.14 wheel issues when installing `.[rag]` on D3.
 
 ## Last updated
-2026-06-24 — by: D12 QA + eval pass — verdict FAIL vs ≥90% grounding target (live 85%; off-topic refusal leak 2/3; p95 latency 7.6s). Fix before D13.
+2026-06-24 — by: D13 Kaggle writeup assembled (honest eval: live 85%, offline green) + README polish. Manual gaps: video, notebook, Submit; grounding fix still gates a clean ≥90% submit.

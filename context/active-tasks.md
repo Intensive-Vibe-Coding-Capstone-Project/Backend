@@ -28,9 +28,15 @@
 - [x] Live grounding rate via a **throttled** run (the real free-tier cap is **5 req/min**, not 20/day — throttling beats it): **11/13 = 85%** — UNDER the ≥90% target. All 10 on-topic cases ground correctly; off-topic refusal leaked on 2/3 (`off1`, `off3` returned grounded scripts for nonsense; `off2` refused).
 - [x] Latency (live): p50 **4.08s** (≈budget), p95/max **7.60s** (over ~4s). Mitigation = token streaming (still deferred).
 
-## D12 follow-up — fix before D13 (blocking submission)
+## D12 follow-up — fix before final Submit (blocks a clean ≥90%)
 - [ ] **Off-topic over-grounding:** all 3 off-topic Qs pass the `rescue_min_score` 0.4 floor (anisotropic embeddings) → LLM called; refusal detection caught only 1/3 — Dev — get live grounding ≥90%. Options: strengthen the refusal prompt (primary guard, per D6 decision) and/or add a post-gen relevance check; min_score tuning is delicate (all 10 grounded cases must stay grounded).
 - [ ] Latency: token streaming to cut perceived time vs p95 7.6s — Dev — within demo budget.
+
+## D13 — Kaggle submission
+- [x] Assemble `docs/04-delivery/kaggle-submission.md` from artifacts with an honest §8 (offline 66/66 + 13/13 classify; live 85% + off-topic leak + p95 7.6s disclosed). README Status refreshed.
+- [ ] Record demo video per `demo-script.md` — owner.
+- [ ] Package the Kaggle notebook (or link repo + run steps); dry-run from a clean env — owner.
+- [ ] Final Submit on Kaggle (after the grounding fix lands ≥90%) — owner.
 
 ## Backlog
 - [ ] Latency: stream tokens to cut perceived time vs ~4s budget (D8+ streaming) — owner.

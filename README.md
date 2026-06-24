@@ -49,4 +49,4 @@ MeetingMinute/   raw intent
 ```
 
 ## Status
-Greenfield · Week 1 / Setup. Tech stack proposed in [tech-stack.md](docs/01-architecture/tech-stack.md) (confirm before building).
+Week 2 / pre-submission. **All 4 PRD use cases work end to end** — text path (upload → index → ask → grounded lyric script + citations + history) and a live path (`WS /stream` with manual / periodic / keyword / silence triggers + brand/flow slip detection). **66/66 tests** keyless; ruff clean. Live grounding eval: **85%** (on-topic 10/10; an off-topic refusal leak is the one fix outstanding before final submit — see [kaggle-submission.md](docs/04-delivery/kaggle-submission.md) §8). Tech stack confirmed in [tech-stack.md](docs/01-architecture/tech-stack.md).
