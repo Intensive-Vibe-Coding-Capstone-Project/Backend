@@ -1,0 +1,31 @@
+AuroraBuds Pro — Official Spec Sheet (Lumen Audio)
+
+Overview
+AuroraBuds Pro are Lumen Audio's flagship wireless noise-cancelling earbuds, built around personalized sound. Each bud weighs 4.8 grams; the charging case weighs 38 grams.
+
+Sound
+- 11 mm titanium-coated dynamic driver per bud.
+- Adaptive Sound Map: a 10-second in-app ear scan measures the shape of your ear canal and tunes the EQ specifically for you. No two profiles are the same.
+- Custom EQ and touch controls are configured in the Lumen app.
+
+Noise control
+- QuietCore 2 hybrid active noise cancellation cancels up to 42 dB of ambient noise.
+- Transparency mode lets outside sound in for conversations.
+
+Performance
+- Lumen L1 chip. Game Mode drops audio latency to 38 ms.
+- Bluetooth 5.3 with multipoint: connect to 2 devices at once.
+- 3 microphones per bud with wind-noise reduction for clear calls.
+
+Battery and charging
+- 9 hours of playback per charge (7 hours with ANC on).
+- 32 hours total with the charging case.
+- Fast charge: 10 minutes gives 2 hours of playback.
+- Charges over USB-C or Qi wireless.
+
+Durability
+- Buds are IPX5 rated (sweat and splash resistant). The case is not water rated.
+- Not suitable for swimming or submersion.
+
+Colors: Midnight Black, Cloud White, Sage Green.
+In the box: earbuds, charging case, 3 ear-tip sizes (S/M/L), USB-C cable, quick-start guide.
