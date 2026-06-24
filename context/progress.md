@@ -41,15 +41,14 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 
 - **D11 ✅ Stretch triggers + UX polish (dev done)** — `triggers/engine.py`: **keyword + silence auto-triggers**. `matched_keyword` (urgent phrases from `trigger_keywords` config) + `auto_reason(session_id)` picks **keyword > silence > periodic**; keyword/silence relax the `trigger_min_chars` gate while all auto modes still dedup on an unchanged window and suppress ungrounded bridges. `auto_fire()` runs one scan and returns `(response, mode)`; WS auto-scan now surfaces the real mode. **UI polish** (`frontend/index.html`): new panels for a **prepared script** (`PUT /sessions/{id}/script` → enables slip alerts) and a **live transcript over WS** (connect, type lines, "Rescue now" / "Check slip", live karaoke render with mode/`grounded`/slip badges + event log). `pytest` **66/66** keyless; ruff clean.
 
+- **D12 ⚠️ QA + eval pass — verdict FAIL vs grounding target (2026-06-24)** — Full `qa-review` over D2–D11. **Tests:** `pytest` **66/66** keyless, ruff check + format clean. **Edge cases / envelope:** 415 / 422 / 413 (oversized→`FileTooLargeError`) / 404 (`{error,detail}`), WS unknown session close 4404, unsupported question + generation failure → graceful bridge — all verified. **Live grounding eval finally ran clean** (throttled ~14s/case to beat the real free-tier limit, which is **5 req/min**, not 20/day): **11/13 = 85% — UNDER the ≥90% target.** All 10 on-topic cases ground correctly (10/10); off-topic refusal **leaked on 2/3** — `off1` ("banana umbrella…") and `off3` ("recipe chocolate cake…") returned grounded scripts for nonsense, only `off2` refused. **Latency (live):** p50 **4.08s** (≈budget), p95/max **7.60s** (over ~4s). Root cause = the D6-flagged risk, now confirmed live: anisotropic embeddings let all 3 off-topic Qs clear the 0.4 `rescue_min_score` floor → LLM called, and refusal detection (primary guard) caught only 1/3. Offline deterministic gate stays green (CI signal).
+
 ## In progress
-- D6 follow-ups before submit: live `run_eval.py` real grounding rate **still blocked** (now by free-tier quota — see below); latency via streaming.
+- **D12 follow-up (blocks D13):** fix off-topic over-grounding → live grounding ≥90% (strengthen refusal prompt / add post-gen relevance check; min_score tuning is delicate). Latency via token streaming vs p95 7.6s.
 - D1 wrap-up: optional — fill team roles in roadmap.
 
-## D6 follow-up status (re-attempted D11)
-- **Live grounding eval re-run on 2026-06-23 → BLOCKED by HTTP 429 RESOURCE_EXHAUSTED** (free tier = **20 `gemini-2.5-flash` generate/day**, exhausted). The rescue path degraded gracefully to the bridge line on every 429 (no crash, no hallucination) — robustness confirmed. Offline 13-case gate stays green. **Re-run in a fresh-quota window (or with billing) before D13**, and mind that each auto-scan with new speech costs 1 generate against the 20/day cap.
-
 ## Next (per roadmap)
-- **D12 — Full QA + eval pass** (`qa-review` on the whole pipeline; live grounding rate when quota allows; latency). Then **D13 Kaggle submission**, D14 buffer/retro.
+- Land the D12 grounding fix + re-run the live eval (≥90%), then **D13 Kaggle submission**, D14 buffer/retro.
 
 ## Blockers / open questions
 - STT vendor (decide D8) and demo hosting still open — not blocking Week 1.
@@ -57,4 +56,4 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 - Note: deps install fine on local Python 3.14; CI pins 3.11/3.12. Watch for chromadb/google-genai 3.14 wheel issues when installing `.[rag]` on D3.
 
 ## Last updated
-2026-06-23 — by: D11 stretch triggers (keyword + silence) + UX polish (prepared script + live WS panel)
+2026-06-24 — by: D12 QA + eval pass — verdict FAIL vs ≥90% grounding target (live 85%; off-topic refusal leak 2/3; p95 latency 7.6s). Fix before D13.

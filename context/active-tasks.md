@@ -23,15 +23,19 @@
 
 - [x] D11 — Stretch triggers + UX polish: keyword + silence auto-triggers (`matched_keyword` + `auto_reason`/`auto_fire`, keyword > silence > periodic; auto modes dedup + suppress ungrounded); demo UI gains a prepared-script panel (`PUT /sessions/{id}/script`) + a live-transcript WS panel (connect, send lines, manual trigger, check-slip, live karaoke render + badges + log). pytest 66/66.
 
-## D12 — Full QA + eval pass (next)
-- [ ] Run `qa-review` over the whole pipeline (D2–D11): pytest green, edge cases, error envelope — QA — PASS/FAIL with evidence.
-- [ ] Live grounding rate via `run_eval.py` in a fresh-quota window (free tier = 20 flash generate/day; today's run hit 429) — QA — record real ≥90% number.
-- [ ] Latency check on `/rescue` vs ~4s; decide if token streaming is needed for the demo — QA.
+## D12 — Full QA + eval pass — verdict: **FAIL vs grounding target**
+- [x] Ran `qa-review` over the whole pipeline (D2–D11): pytest **66/66** keyless, ruff clean, edge cases + `{error,detail}` envelope verified (415/422/413/404, WS 4404, generation failure → bridge).
+- [x] Live grounding rate via a **throttled** run (the real free-tier cap is **5 req/min**, not 20/day — throttling beats it): **11/13 = 85%** — UNDER the ≥90% target. All 10 on-topic cases ground correctly; off-topic refusal leaked on 2/3 (`off1`, `off3` returned grounded scripts for nonsense; `off2` refused).
+- [x] Latency (live): p50 **4.08s** (≈budget), p95/max **7.60s** (over ~4s). Mitigation = token streaming (still deferred).
+
+## D12 follow-up — fix before D13 (blocking submission)
+- [ ] **Off-topic over-grounding:** all 3 off-topic Qs pass the `rescue_min_score` 0.4 floor (anisotropic embeddings) → LLM called; refusal detection caught only 1/3 — Dev — get live grounding ≥90%. Options: strengthen the refusal prompt (primary guard, per D6 decision) and/or add a post-gen relevance check; min_score tuning is delicate (all 10 grounded cases must stay grounded).
+- [ ] Latency: token streaming to cut perceived time vs p95 7.6s — Dev — within demo budget.
 
 ## Backlog
 - [ ] Latency: stream tokens to cut perceived time vs ~4s budget (D8+ streaming) — owner.
 - [ ] Audio STT (Gemini live / Google STT) — stretch beyond the text path.
-- [ ] Demo cost: each auto-scan with new speech = 1 Gemini generate; against the 20/day free-tier cap, consider raising `scan_interval_s` or enabling billing for the live demo.
+- [ ] Demo cost: each auto-scan with new speech = 1 Gemini generate; the binding free-tier cap is **5 req/min** (gemini-2.5-flash), so consider raising `scan_interval_s`, throttling, or enabling billing for the live demo.
 
 ## Format
 `- [ ] <task> — owner — acceptance criteria`
