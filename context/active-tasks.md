@@ -40,7 +40,7 @@
 
 ## Backlog
 - [ ] Latency: stream tokens to cut perceived time vs ~4s budget (D8+ streaming) — owner.
-- [ ] Audio STT (Gemini live / Google STT) — stretch beyond the text path.
+- [x] Voice input — **browser Web Speech API** 🎤 in the live panel streams speech into `WS /stream` (Chrome/Edge, client-side, no key). Server-side streaming STT (Gemini live / Google STT) still stretch.
 - [ ] Demo cost: each auto-scan with new speech = 1 Gemini generate; the binding free-tier cap is **5 req/min** (gemini-2.5-flash), so consider raising `scan_interval_s`, throttling, or enabling billing for the live demo.
 
 ## Format

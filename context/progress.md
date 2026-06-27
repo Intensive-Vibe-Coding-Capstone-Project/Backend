@@ -45,6 +45,8 @@ Week 1 / Setup (Day 1, Mon 22 Jun 2026).
 
 - **D13 ✅ Kaggle submission writeup assembled (2026-06-24)** — filled `docs/04-delivery/kaggle-submission.md` from artifacts (PRD, system-design, demo-script, D12 eval): problem/users, 4 use cases, architecture + Loop-Engineering diagrams, AI-agent design, reproducibility (pinned deps, `GEMINI_API_KEY`→Kaggle Secrets, model ids, keyless fakes), and an **honest §8 results** section (offline 66/66 + 13/13 classify; live **85%** with the off-topic leak + p95 7.6s disclosed, not hidden). README Status refreshed to the real built state. **Remaining manual gaps (user):** record the demo video, package the Kaggle notebook (or link the repo + run steps), and the actual Submit. **Blocking a clean ≥90% submit:** the D12 grounding fix is still open.
 
+- **Demo enablement ✅ Voice input (2026-06-24)** — added a 🎤 Speak button to the live panel (`frontend/index.html`) using the browser **Web Speech API**: recognized phrases stream into the existing `WS /stream` text ingest (interim preview in the box, final phrases auto-sent). Frontend-only, no key/cost, Chrome/Edge. Added a fictional **AuroraBuds Pro** demo kit (`samples/aurorabuds/`: 3 docs + prepared script + RUNBOOK) and a `Youtube_demo.md` recording guide. `test_ui` green.
+
 ## In progress
 - **D12 follow-up (gates a clean submit):** fix off-topic over-grounding → live grounding ≥90% (strengthen refusal prompt / add post-gen relevance check; min_score tuning is delicate). Latency via token streaming vs p95 7.6s.
 - **D13 manual steps:** demo video, Kaggle notebook packaging, final Submit — owner.

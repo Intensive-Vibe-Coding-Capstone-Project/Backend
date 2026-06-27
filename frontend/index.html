@@ -57,6 +57,8 @@
       }
       button.secondary { background: #2a3157; color: var(--ink); }
       button:disabled { opacity: 0.5; cursor: not-allowed; }
+      button.listening { background: #f25a78; color: #fff; animation: pulse 1.2s ease-in-out infinite; }
+      @keyframes pulse { 50% { opacity: 0.6; } }
       .muted { color: var(--muted); font-size: 13px; }
       .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
       .chip { background: #0d1124; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 12px; color: var(--muted); }
@@ -134,12 +136,14 @@
           <span id="wsStatus" class="muted">Disconnected.</span>
         </div>
         <div class="row" style="margin-top:10px">
-          <input type="text" id="transcriptLine" placeholder="Speak a line (type it), press Enter or Send…" style="flex:1" />
+          <input type="text" id="transcriptLine" placeholder="Speak with the mic, or type a line — Enter / Send to push…" style="flex:1" />
+          <button id="micBtn" class="secondary" disabled>🎤 Speak</button>
           <button id="sendLine" disabled>Send line</button>
         </div>
         <div class="row" style="margin-top:10px">
           <button id="manualTrigger" class="secondary" disabled>Rescue now</button>
           <button id="checkSlip" class="secondary" disabled>Check slip</button>
+          <span id="micHint" class="muted"></span>
         </div>
         <div id="liveBadge" style="margin-top:12px"></div>
         <div id="liveScript"></div>
@@ -283,6 +287,8 @@
         $("connectWs").disabled = on;
         $("disconnectWs").disabled = !on;
         wsBtns.forEach((id) => ($(id).disabled = !on));
+        $("micBtn").disabled = !on || !micSupported();
+        if (!on) stopMic();
       }
       function logEvent(html) {
         const li = document.createElement("li");
@@ -337,6 +343,63 @@
       $("transcriptLine").addEventListener("keydown", (e) => { if (e.key === "Enter") sendLine(); });
       $("manualTrigger").onclick = () => ws && ws.send(JSON.stringify({ type: "trigger" }));
       $("checkSlip").onclick = () => ws && ws.send(JSON.stringify({ type: "check_slip" }));
+
+      // --- Voice input (browser Web Speech API → same WS text ingest) ---
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let recognition = null;
+      let listening = false;
+      function micSupported() { return !!SpeechRec; }
+
+      function startMic() {
+        if (!SpeechRec || !ws) return;
+        recognition = new SpeechRec();
+        recognition.lang = "en-US";
+        recognition.continuous = true;     // keep listening across pauses
+        recognition.interimResults = true; // preview words as they form
+        recognition.onresult = (ev) => {
+          let interim = "";
+          for (let i = ev.resultIndex; i < ev.results.length; i++) {
+            const phrase = ev.results[i][0].transcript;
+            if (ev.results[i].isFinal) {
+              const text = phrase.trim();
+              if (text && ws) {
+                ws.send(JSON.stringify({ text })); // push like a typed line
+                logEvent(`<span class="muted">🎤 ${text}</span>`);
+              }
+            } else {
+              interim += phrase;
+            }
+          }
+          $("transcriptLine").value = interim; // live preview only
+        };
+        recognition.onerror = (ev) => {
+          $("wsStatus").textContent = "Mic: " + ev.error;
+          if (ev.error === "not-allowed" || ev.error === "service-not-allowed") stopMic();
+        };
+        recognition.onend = () => {
+          // Chrome ends the session periodically; restart while still listening.
+          if (listening && recognition) { try { recognition.start(); } catch (e) {} }
+        };
+        try { recognition.start(); } catch (e) {}
+        listening = true;
+        $("micBtn").textContent = "🛑 Stop";
+        $("micBtn").classList.add("listening");
+      }
+
+      function stopMic() {
+        listening = false;
+        if (recognition) {
+          recognition.onend = null;
+          try { recognition.stop(); } catch (e) {}
+          recognition = null;
+        }
+        $("transcriptLine").value = "";
+        $("micBtn").textContent = "🎤 Speak";
+        $("micBtn").classList.remove("listening");
+      }
+
+      $("micBtn").onclick = () => (listening ? stopMic() : startMic());
+      if (!micSupported()) $("micHint").textContent = "🎤 Voice input needs Chrome or Edge.";
 
       loadDocs();
     </script>

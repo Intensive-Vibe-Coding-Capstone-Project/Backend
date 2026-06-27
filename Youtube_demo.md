@@ -47,6 +47,13 @@ Open **http://127.0.0.1:8000/** (redirects to the `/ui` demo page).
 - **Mic:** record voiceover live, or narrate in post. Aim for an upbeat, confident "ad" tone.
 - Have this file open on a second monitor / phone to follow along.
 
+### A6. 🎤 Real-time speaking (the live voice input)
+The live panel now has a **🎤 Speak** button (browser speech recognition → streamed straight into Cue).
+- Use **Chrome or Edge** (the API isn't in Firefox). The first click asks for **microphone permission** — allow it *before* recording so the prompt isn't on camera.
+- **Connect** the WS first; then click **🎤 Speak** (it turns red and pulses). Talk normally — words preview in the box, and each finished phrase is sent automatically (no Enter needed). Click **🛑 Stop** to end.
+- Speak clearly at a normal pace; pause briefly between sentences so each phrase finalizes cleanly.
+- You can still **type** a line and hit Send/Enter for precise, repeatable takes — mix both as you like.
+
 ---
 
 ## Part B — The recording script (scene by scene)
@@ -83,13 +90,13 @@ First bind your script so Cue knows what "on-message" means:
   > `Shopee, Lazada, AirPods, Sony`
   Save.
 - **[Say]** *"Here's the magic. I tell Cue my script — and the brands I must NOT say on a TikTok Shop exclusive. Now watch me slip up on purpose."*
-- **[Action]** **Panel 5 · Live transcript (WS)** → **Connect** → type the slip line and click **Check slip**:
+- **[Action]** **Panel 5 · Live transcript (WS)** → **Connect** → click **🎤 Speak** and *say the slip line out loud* (or type it), then click **Check slip**:
   > `Honestly these sound way better than the AirPods, and you can grab them on Shopee too!`
 - **[See]** A red **alert/correction** appears — `kind: brand`, flagging **AirPods** and **Shopee** — with a calm on-message correction line steering back to AuroraBuds on TikTok Shop. ✅
 - **[Say]** *"Instantly — Cue catches it. Wrong channel, wrong brand, and it hands me the on-message fix. No awkward pause, no lost sale."*
 
 ### Scene 5 — (Optional) Drift off-script · ~20s
-- **[Action]** Still in **Panel 5**, type an off-topic ramble and **Check slip**:
+- **[Action]** Still in **Panel 5**, *say* (🎤) an off-topic ramble and **Check slip**:
   > `Oh by the way, did anyone catch the football last night? It went to penalties and I forgot my alarm.`
 - **[See]** A correction with `kind: off_flow` — *"let's get back on track, return to your prepared script."* ✅
 - **[Say]** *"Ramble off-script? It nudges me right back."*

@@ -51,7 +51,7 @@ cue                         # serves http://127.0.0.1:8000  (UI at /ui)
 **Panel 4 · Prepared script** → paste `prepared-script.txt`, set **Forbidden terms** to `Shopee, Lazada, AirPods, Sony`, Save.
 
 ### 3. Go live
-**Panel 5 · Live transcript (WS)** → **Connect.** Now type spoken lines as if talking.
+**Panel 5 · Live transcript (WS)** → **Connect.** Then either click **🎤 Speak** and *talk* (Chrome/Edge; allow the mic — each finished phrase auto-sends), or type lines and hit Send. Both feed the same pipeline.
 
 **Use case 3 — brand/channel slip.** Type:
 > `Honestly these sound better than the AirPods, and you can grab them on Shopee too!`
