@@ -38,3 +38,9 @@ async def upload_document(file: UploadFile = File(...)) -> DocumentMeta:
 def list_documents() -> list[DocumentMeta]:
     """List indexed documents (metadata + preview, not full text)."""
     return index.list_documents()
+
+
+@router.delete("/{doc_id}", status_code=204)
+def delete_document(doc_id: str) -> None:
+    """Delete a document from the index."""
+    index.delete_document(doc_id)
