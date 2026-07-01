@@ -68,13 +68,14 @@
       .badge.info { background: rgba(124,140,255,0.18); color: var(--accent); margin-left: 6px; }
       .badge.alert { background: rgba(242,90,120,0.18); color: #f25a78; }
       /* lyric render */
-      #script { margin-top: 14px; text-align: center; }
-      #script .line {
+      #script, #liveScript { margin-top: 14px; text-align: center; }
+      #script .line, #liveScript .line {
         font-size: 26px; line-height: 1.5; font-weight: 600; padding: 4px 0;
         opacity: 0; transform: translateY(6px); animation: rise 0.4s ease forwards;
       }
       @keyframes rise { to { opacity: 1; transform: none; } }
       ul.history { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+      ul.history#wsLog { max-height: 250px; overflow-y: auto; }
       ul.history li { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
       ul.history .q { color: var(--muted); font-size: 13px; }
       code { color: var(--accent); }
@@ -90,7 +91,7 @@
       <section class="panel">
         <h2>1 · Upload a document</h2>
         <div class="row">
-          <input type="file" id="file" accept=".pdf,.docx,.txt,.pptx,.epub" />
+          <input type="file" id="file" accept=".pdf,.docx,.txt,.pptx,.epub" multiple />
           <button id="uploadBtn">Upload &amp; index</button>
           <button id="refreshDocs" class="secondary">Refresh list</button>
         </div>
@@ -120,7 +121,7 @@
 
       <section class="panel">
         <h2>4 · Prepared script <span class="muted" style="text-transform:none;letter-spacing:0">— optional, enables slip alerts</span></h2>
-        <textarea id="scriptText" placeholder="Paste your prepared script / talking points…"></textarea>
+        <textarea id="scriptText" placeholder="Paste your prepared script / talking points…" style="min-height: 200px;"></textarea>
         <div class="row" style="margin-top:10px">
           <input type="text" id="forbidden" placeholder="Forbidden terms, comma-separated (e.g. Shopee, Lazada)" style="flex:1" />
           <button id="saveScript">Save script</button>
@@ -173,20 +174,36 @@
       async function loadDocs() {
         const docs = await api("/documents");
         $("docs").innerHTML = docs.length
-          ? docs.map((d) => `<span class="chip">${d.filename} · ${d.n_chunks} chunks</span>`).join("")
+          ? docs.map((d) => `<span class="chip" style="display:inline-flex;align-items:center;">${d.filename} · ${d.n_chunks} chunks<button class="deleteDoc" data-id="${d.id}" style="background:none;border:none;color:var(--warn);padding:0;margin-left:6px;font-size:14px;cursor:pointer;" title="Delete this file">&times;</button></span>`).join("")
           : '<span class="muted">No documents yet.</span>';
+          
+        document.querySelectorAll('.deleteDoc').forEach(btn => {
+          btn.onclick = async (e) => {
+            const id = e.target.getAttribute('data-id');
+            try {
+              await api(`/documents/${id}`, { method: 'DELETE' });
+              await loadDocs();
+            } catch (err) {
+              alert("Delete failed: " + err.message);
+            }
+          };
+        });
       }
 
       $("uploadBtn").onclick = async () => {
-        const f = $("file").files[0];
-        if (!f) return alert("Choose a file first.");
-        const fd = new FormData();
-        fd.append("file", f);
+        const files = $("file").files;
+        if (!files.length) return alert("Choose at least one file first.");
         $("uploadBtn").disabled = true;
         try {
-          const d = await api("/documents", { method: "POST", body: fd });
+          for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            const fd = new FormData();
+            fd.append("file", f);
+            await api("/documents", { method: "POST", body: fd });
+          }
           await loadDocs();
-          alert(`Indexed ${d.filename} (${d.n_chunks} chunks).`);
+          $("file").value = "";
+          alert(`Indexed ${files.length} document(s).`);
         } catch (e) {
           alert("Upload failed: " + e.message);
         } finally {

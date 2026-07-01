@@ -47,6 +47,11 @@ def get_document(doc_id: str) -> DocumentMeta | None:
     return get_store().get_document(doc_id)
 
 
+def delete_document(doc_id: str) -> None:
+    """Delete a document and its chunks from the store."""
+    get_store().delete_document(doc_id)
+
+
 def query(question: str, k: int | None = None) -> list[Passage]:
     """Embed a question and return the top-`k` grounded passages with citations."""
     settings = get_settings()
