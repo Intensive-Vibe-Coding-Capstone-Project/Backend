@@ -64,7 +64,7 @@ One trip = one roadmap task, grounded in a **Context Engineering** docs system (
 
 ~3-minute walkthrough (script in `docs/04-delivery/demo-script.md`): hook → upload + index → **use case 1** (hard Q → grounded lyric script) → **use case 3** (wrong brand → correction line) → architecture + loop diagram → impact. The text-path UI at `/ui` exercises upload → session → ask → lyric render + citations + history; the live panel connects to `WS /stream`, streams transcript, and shows mode/grounded/slip badges.
 
-> **Video:** record per `demo-script.md` and link here. *(Not produced in-repo — see checklist.)*
+> **Video:** https://youtu.be/9WT2cFZ4iuA — ~2–3 min ad-style walkthrough (AuroraBuds Pro scenario): upload/index → hard question → grounded karaoke rescue → on-purpose brand slip caught live.
 
 ## 7. Reproducibility
 
@@ -104,7 +104,7 @@ Per PRD §7 "stretch/out": fully bi-directional **live audio STT** (MVP ingests 
 
 - [x] Writeup complete (this file)
 - [x] Reproducible run path (deps pinned, keyless fakes, `run_eval.py`, model ids/store documented) — **dry-run from a clean env still owed**
-- [ ] Demo video — record per `demo-script.md`
+- [x] Demo video — https://youtu.be/9WT2cFZ4iuA
 - [x] Repo link + README (polished)
 - [x] Keys handled via Kaggle Secrets / `.env` (no key committed)
 - [ ] **Grounding ≥90% before final submit** — currently 85% live (off-topic leak); fix outstanding
